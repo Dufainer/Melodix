@@ -49,3 +49,12 @@ export interface OrganizeResult {
   new_path: string | null
   error: string | null
 }
+
+export interface RenameResult {
+  original_path: string
+  new_path: string
+  status: 'renamed' | 'conflict' | 'unchanged' | 'error'
+  original_size: number
+  existing_size: number
+  error: string | null
+}
