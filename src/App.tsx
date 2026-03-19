@@ -8,6 +8,7 @@ import PlayerPage from './pages/PlayerPage'
 import Settings from './pages/Settings'
 import LikesPage from './pages/Likes'
 import PlaylistPage from './pages/PlaylistPage'
+import StatsPage from './pages/StatsPage'
 import Player from './components/Player'
 import NowPlaying from './components/NowPlaying'
 import { useLibraryStore } from './store'
@@ -59,6 +60,7 @@ function AppContent() {
             <Route path="/playlist/:id" element={<PlaylistPage />} />
             <Route path="/albums" element={<PlayerPage defaultTab="albums" standalone />} />
             <Route path="/artists" element={<PlayerPage defaultTab="artists" standalone />} />
+            <Route path="/stats" element={<StatsPage />} />
           </Routes>
         </div>
       </div>

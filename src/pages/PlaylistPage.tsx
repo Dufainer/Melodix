@@ -163,7 +163,7 @@ export default function PlaylistPage() {
                 }`}
               >
                 <GripVertical className="w-4 h-4 text-zinc-700 shrink-0 opacity-0 group-hover:opacity-100" />
-                <CoverArt src={track.coverArt} size="sm" />
+                <CoverArt src={track.coverArt} path={track.path} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-medium truncate ${active ? 'text-accent' : 'text-zinc-200'}`}>
                     {track.title || track.path.split('/').pop()}

@@ -6,6 +6,12 @@ A modern, cross-platform music player and audio metadata manager built with **Ta
 
 ## Features
 
+### Home
+- **Your Mix** hero — quick Play / Shuffle into your personal daily mix
+- **Recently Played** — horizontally scrollable cards with instant play on hover
+- **Listening Stats** — total time listened, top genres, and favourite decades at a glance
+- **Daily Mix** — algorithmically generated playlist from your library with lazy cover art previews
+
 ### Player
 - Full audio playback (FLAC, MP3, AAC, OGG, OPUS, WAV, AIFF) via rodio + symphonia
 - Instant seeking with binary-search (no delay)
@@ -20,6 +26,7 @@ A modern, cross-platform music player and audio metadata manager built with **Ta
 - Search and filter across all views
 - Format badge on every track (FLAC, MP3, …)
 - Scan local music folders recursively
+- **Lazy cover art** — covers load only when scrolled into view, with a global concurrency queue to prevent I/O saturation
 
 ### Playlists
 - Create, rename and delete playlists
@@ -30,6 +37,10 @@ A modern, cross-platform music player and audio metadata manager built with **Ta
 ### Likes
 - Like any song from the mini player, Now Playing view, or song rows
 - Dedicated Likes page listing all favourites
+
+### Stats
+- Top songs, albums, and artists based on play count
+- Listening history and time breakdown
 
 ### Metadata / Tag Editor
 - Edit title, artist, album, genre, year, track/disc number, lyrics, composer, comment
@@ -132,6 +143,8 @@ melodix/
     ├── App.tsx
     ├── store/index.ts      # Zustand global state (library, player, playlists, likes)
     ├── types/index.ts
+    ├── lib/
+    │   └── coverQueue.ts   # Concurrency-limited cover art fetch queue
     ├── components/
     │   ├── Player.tsx      # Mini player bar
     │   ├── NowPlaying.tsx  # Full-screen Now Playing
@@ -140,12 +153,13 @@ melodix/
     │   ├── Library.tsx
     │   ├── Editor.tsx
     │   ├── BulkEditor.tsx
-    │   └── CoverArt.tsx
+    │   ├── CoverArt.tsx    # Lazy-loading cover art component
+    │   └── LazyCover.tsx   # Full-area lazy cover for grid/list layouts
     └── pages/
+        ├── Home.tsx        # Dashboard (Your Mix, Recently Played, Stats, Daily Mix)
         ├── PlayerPage.tsx  # Songs / Albums / Artists
         ├── PlaylistPage.tsx
         ├── Likes.tsx
-        ├── Home.tsx
-        ├── Library.tsx
+        ├── StatsPage.tsx   # Listening statistics
         └── Settings.tsx
 ```

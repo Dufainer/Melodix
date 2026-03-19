@@ -27,13 +27,37 @@ export default function Player() {
     playerTrack, isPlaying, setIsPlaying, playNext, playPrev,
     repeatMode, shuffleOn, setRepeatMode, toggleShuffle, playKey,
     position, duration, setPosition, setDuration, setNowPlayingOpen, markSeeked,
-    likedPaths, toggleLike,
+    likedPaths, toggleLike, recordPlay,
   } = useLibraryStore()
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
   const [loading, setLoading] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const trackPathRef = useRef<string | null>(null)
+  const listenStartRef = useRef<number | null>(null)   // Date.now() when current segment started
+  const accumulatedRef = useRef<number>(0)             // seconds actually listened so far
+
+  function getListened(): number {
+    if (listenStartRef.current !== null)
+      return accumulatedRef.current + (Date.now() - listenStartRef.current) / 1000
+    return accumulatedRef.current
+  }
+
+  function startListening() {
+    listenStartRef.current = Date.now()
+  }
+
+  function pauseListening() {
+    if (listenStartRef.current !== null) {
+      accumulatedRef.current += (Date.now() - listenStartRef.current) / 1000
+      listenStartRef.current = null
+    }
+  }
+
+  function resetListening() {
+    listenStartRef.current = null
+    accumulatedRef.current = 0
+  }
 
   function stopPoll() {
     if (pollRef.current) {
@@ -53,8 +77,11 @@ export default function Player() {
         }
         if (state.duration > 0) setDuration(state.duration)
 
-        // Auto-advance when track finishes
+        // Auto-advance when track finishes — record actual listened seconds
         if (state.finished && trackPathRef.current) {
+          const listened = getListened()
+          if (listened >= 5) recordPlay(trackPathRef.current, listened)
+          resetListening()
           trackPathRef.current = null
           stopPoll()
           playNext()
@@ -89,6 +116,14 @@ export default function Player() {
       return
     }
 
+    // Record actual listened time for the previous track before switching
+    const prevPath = trackPathRef.current
+    if (prevPath && prevPath !== playerTrack.path) {
+      const listened = getListened()
+      if (listened >= 5) recordPlay(prevPath, listened)
+    }
+    resetListening()
+
     trackPathRef.current = playerTrack.path
     setLoading(true)
     setPosition(0)
@@ -117,13 +152,23 @@ export default function Player() {
     return () => { /* cleanup handled on next effect run */ }
   }, [playerTrack?.path, playKey])
 
+  // Lazy-load cover art for the current track if not already cached
+  useEffect(() => {
+    if (!playerTrack || playerTrack.coverArt) return
+    invoke<string | null>('get_cover_art', { path: playerTrack.path })
+      .then(art => { if (art) useLibraryStore.getState().updateTrack(playerTrack.path, { coverArt: art }) })
+      .catch(() => {})
+  }, [playerTrack?.path])
+
   // Sync play/pause with Rust
   useEffect(() => {
     if (!playerTrack || loading) return
     if (isPlaying) {
+      startListening()
       invoke('player_resume').catch(() => {})
       startPoll()
     } else {
+      pauseListening()
       invoke('player_pause').catch(() => {})
       stopPoll()
     }

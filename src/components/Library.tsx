@@ -59,7 +59,7 @@ function TrackCard({ track, isSelected, isChecked, onSelect, onCheck }: TrackCar
 
       {/* Main clickable area */}
       <div className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer" onClick={() => onSelect(track)}>
-        <CoverArt src={track.coverArt} size="md" />
+        <CoverArt src={track.coverArt} path={track.path} size="md" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-medium text-zinc-100 truncate group-hover:text-white transition-colors">

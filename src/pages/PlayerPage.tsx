@@ -7,6 +7,7 @@ import {
 import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import AddToPlaylist from '../components/AddToPlaylist'
+import LazyCover from '../components/LazyCover'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -52,17 +53,6 @@ function formatDuration(s: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 
-// ── Static cover placeholder (lazy loading disabled for performance) ──────────
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function LazyCover({ fallback, trackPath: _t, className: _c }: {
-  trackPath: string | null
-  className?: string
-  fallback?: React.ReactNode
-}) {
-  return <>{fallback}</>
-}
-
 // ── Song row ──────────────────────────────────────────────────────────────────
 
 function SongRow({
@@ -81,9 +71,10 @@ function SongRow({
       {/* Cover / index */}
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 relative bg-white/5 flex items-center justify-center">
         <LazyCover
-          trackPath={track.path}
+          path={track.path}
+          coverArt={track.coverArt}
           className="absolute inset-0 w-full h-full object-cover"
-          fallback={<Music2 className="w-4 h-4 text-zinc-600" />}
+          iconSize={16}
         />
         {/* Play overlay on hover or active */}
         <div className={`absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity
@@ -127,7 +118,7 @@ function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
         <Disc3 className="w-12 h-12 text-zinc-700" />
       </div>
       <LazyCover
-        trackPath={album.firstTrackPath}
+        path={album.firstTrackPath}
         className="absolute inset-0 w-full h-full object-cover"
       />
       {/* Gradient overlay */}
@@ -160,7 +151,7 @@ function ArtistRow({ artist, onClick }: { artist: Artist; onClick: () => void })
       <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 relative bg-white/5 flex items-center justify-center">
         <Mic2 className="w-6 h-6 text-zinc-600" />
         <LazyCover
-          trackPath={artist.firstTrackPath}
+          path={artist.firstTrackPath}
           className="absolute inset-0 w-full h-full object-cover"
         />
       </div>

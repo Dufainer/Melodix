@@ -13,6 +13,12 @@ export interface Playlist {
   createdAt: number
 }
 
+export interface PlayEvent {
+  path: string
+  timestamp: number
+  duration: number
+}
+
 interface LibraryState {
   tracks: Track[]
   selectedTrack: Track | null
@@ -26,6 +32,7 @@ interface LibraryState {
   likedPaths: string[]
   playlists: Playlist[]
   recentlyPlayed: string[]
+  playHistory: PlayEvent[]
 
   // Player
   playerTrack: Track | null
@@ -54,6 +61,7 @@ interface LibraryState {
   setFolderPattern: (pattern: string) => void
   setMusicFolder: (path: string) => void
   toggleLike: (path: string) => void
+  recordPlay: (path: string, duration: number) => void
   createPlaylist: (name: string) => string
   deletePlaylist: (id: string) => void
   renamePlaylist: (id: string, name: string) => void
@@ -97,6 +105,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   likedPaths: JSON.parse(localStorage.getItem('likedPaths') ?? '[]'),
   playlists: JSON.parse(localStorage.getItem('playlists') ?? '[]'),
   recentlyPlayed: JSON.parse(localStorage.getItem('recentlyPlayed') ?? '[]'),
+  playHistory: JSON.parse(localStorage.getItem('playHistory') ?? '[]'),
 
   setTracks: (tracks) => set({ tracks }),
 
@@ -168,6 +177,14 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     const next = [track.path, ...recentlyPlayed.filter((p) => p !== track.path)].slice(0, 30)
     localStorage.setItem('recentlyPlayed', JSON.stringify(next))
     set({ playerTrack: track, isPlaying: true, playerQueue: queue, recentlyPlayed: next })
+  },
+
+  recordPlay: (path, duration) => {
+    const { playHistory } = get()
+    const event: PlayEvent = { path, timestamp: Date.now(), duration }
+    const next = [...playHistory, event].slice(-5000)
+    localStorage.setItem('playHistory', JSON.stringify(next))
+    set({ playHistory: next })
   },
   setIsPlaying: (isPlaying) => set({ isPlaying }),
 
