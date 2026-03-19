@@ -25,6 +25,7 @@ interface LibraryState {
   musicFolder: string | null
   likedPaths: string[]
   playlists: Playlist[]
+  recentlyPlayed: string[]
 
   // Player
   playerTrack: Track | null
@@ -95,6 +96,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   lastSeekAt: 0,
   likedPaths: JSON.parse(localStorage.getItem('likedPaths') ?? '[]'),
   playlists: JSON.parse(localStorage.getItem('playlists') ?? '[]'),
+  recentlyPlayed: JSON.parse(localStorage.getItem('recentlyPlayed') ?? '[]'),
 
   setTracks: (tracks) => set({ tracks }),
 
@@ -161,7 +163,12 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     }
   },
 
-  playTrack: (track, queue) => set({ playerTrack: track, isPlaying: true, playerQueue: queue }),
+  playTrack: (track, queue) => {
+    const { recentlyPlayed } = get()
+    const next = [track.path, ...recentlyPlayed.filter((p) => p !== track.path)].slice(0, 30)
+    localStorage.setItem('recentlyPlayed', JSON.stringify(next))
+    set({ playerTrack: track, isPlaying: true, playerQueue: queue, recentlyPlayed: next })
+  },
   setIsPlaying: (isPlaying) => set({ isPlaying }),
 
   playNext: () => {

@@ -85,7 +85,9 @@ impl SeekSource {
 
     fn fill(&mut self) {
         use symphonia::core::audio::SampleBuffer;
-        loop {
+        // Fill until we have at least 16 384 samples buffered (~93 ms at 44 100 Hz stereo)
+        // to avoid ALSA underruns caused by decoding one tiny packet at a time.
+        while self.buf.len() < 16_384 {
             let packet = match self.format.next_packet() {
                 Ok(p) => p,
                 Err(_) => { self.done = true; return; }
@@ -97,7 +99,6 @@ impl SeekSource {
                     let mut sb = SampleBuffer::<i16>::new(decoded.capacity() as u64, spec);
                     sb.copy_interleaved_ref(decoded);
                     self.buf.extend(sb.samples().iter().copied());
-                    return;
                 }
                 Err(_) => continue,
             }
@@ -108,9 +109,9 @@ impl SeekSource {
 impl Iterator for SeekSource {
     type Item = i16;
     fn next(&mut self) -> Option<i16> {
-        if self.buf.is_empty() {
-            if self.done { return None; }
-            self.fill();
+        if self.buf.len() < 4_096 {
+            if self.done && self.buf.is_empty() { return None; }
+            if !self.done { self.fill(); }
         }
         self.buf.pop_front()
     }
