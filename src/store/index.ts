@@ -4,6 +4,15 @@ import { Track } from '../types'
 const DEFAULT_FILE_PATTERN   = '{track} - {title}'
 const DEFAULT_FOLDER_PATTERN = '{artist}/{album}'
 
+type RepeatMode = 'off' | 'one' | 'all'
+
+export interface Playlist {
+  id: string
+  name: string
+  trackPaths: string[]
+  createdAt: number
+}
+
 interface LibraryState {
   tracks: Track[]
   selectedTrack: Track | null
@@ -13,6 +22,21 @@ interface LibraryState {
   activeFormat: string | null
   filePattern: string
   folderPattern: string
+  musicFolder: string | null
+  likedPaths: string[]
+  playlists: Playlist[]
+
+  // Player
+  playerTrack: Track | null
+  isPlaying: boolean
+  playerQueue: Track[]
+  repeatMode: RepeatMode
+  shuffleOn: boolean
+  playKey: number
+  position: number
+  duration: number
+  nowPlayingOpen: boolean
+  lastSeekAt: number
 
   setTracks: (tracks: Track[]) => void
   addTracks: (tracks: Track[]) => void
@@ -27,9 +51,28 @@ interface LibraryState {
   clearSelection: () => void
   setFilePattern: (pattern: string) => void
   setFolderPattern: (pattern: string) => void
+  setMusicFolder: (path: string) => void
+  toggleLike: (path: string) => void
+  createPlaylist: (name: string) => string
+  deletePlaylist: (id: string) => void
+  renamePlaylist: (id: string, name: string) => void
+  addToPlaylist: (id: string, path: string) => void
+  removeFromPlaylist: (id: string, path: string) => void
+
+  // Player actions
+  playTrack: (track: Track, queue: Track[]) => void
+  setIsPlaying: (playing: boolean) => void
+  playNext: () => void
+  playPrev: () => void
+  setRepeatMode: (mode: RepeatMode) => void
+  toggleShuffle: () => void
+  setPosition: (pos: number) => void
+  setDuration: (dur: number) => void
+  setNowPlayingOpen: (open: boolean) => void
+  markSeeked: () => void
 }
 
-export const useLibraryStore = create<LibraryState>((set) => ({
+export const useLibraryStore = create<LibraryState>((set, get) => ({
   tracks: [],
   selectedTrack: null,
   selectedPaths: [],
@@ -38,6 +81,20 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   activeFormat: null,
   filePattern:   localStorage.getItem('filePattern')   ?? DEFAULT_FILE_PATTERN,
   folderPattern: localStorage.getItem('folderPattern') ?? DEFAULT_FOLDER_PATTERN,
+  musicFolder:   localStorage.getItem('musicFolder')   ?? null,
+
+  playerTrack: null,
+  isPlaying: false,
+  playerQueue: [],
+  repeatMode: (localStorage.getItem('repeatMode') as RepeatMode) ?? 'off',
+  shuffleOn: localStorage.getItem('shuffleOn') === 'true',
+  playKey: 0,
+  position: 0,
+  duration: 0,
+  nowPlayingOpen: false,
+  lastSeekAt: 0,
+  likedPaths: JSON.parse(localStorage.getItem('likedPaths') ?? '[]'),
+  playlists: JSON.parse(localStorage.getItem('playlists') ?? '[]'),
 
   setTracks: (tracks) => set({ tracks }),
 
@@ -93,5 +150,102 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   setFolderPattern: (pattern) => {
     localStorage.setItem('folderPattern', pattern)
     set({ folderPattern: pattern })
+  },
+  setMusicFolder: (path) => {
+    if (path) {
+      localStorage.setItem('musicFolder', path)
+      set({ musicFolder: path })
+    } else {
+      localStorage.removeItem('musicFolder')
+      set({ musicFolder: null })
+    }
+  },
+
+  playTrack: (track, queue) => set({ playerTrack: track, isPlaying: true, playerQueue: queue }),
+  setIsPlaying: (isPlaying) => set({ isPlaying }),
+
+  playNext: () => {
+    const { playerQueue, playerTrack, repeatMode, shuffleOn, playKey } = get()
+    if (repeatMode === 'one') {
+      set({ playKey: playKey + 1 })
+      return
+    }
+    if (shuffleOn && playerQueue.length > 1) {
+      const others = playerQueue.filter((t) => t.path !== playerTrack?.path)
+      const next = others[Math.floor(Math.random() * others.length)]
+      set({ playerTrack: next, isPlaying: true })
+      return
+    }
+    const idx = playerQueue.findIndex((t) => t.path === playerTrack?.path)
+    const next = playerQueue[idx + 1] ?? (repeatMode === 'all' ? playerQueue[0] : null)
+    if (next) set({ playerTrack: next, isPlaying: true })
+  },
+
+  playPrev: () => {
+    const { playerQueue, playerTrack, repeatMode } = get()
+    const idx = playerQueue.findIndex((t) => t.path === playerTrack?.path)
+    const prev = playerQueue[idx - 1] ?? (repeatMode === 'all' ? playerQueue[playerQueue.length - 1] : null)
+    if (prev) set({ playerTrack: prev, isPlaying: true })
+  },
+
+  setPosition: (position) => set({ position }),
+  setDuration: (duration) => set({ duration }),
+  setNowPlayingOpen: (nowPlayingOpen) => set({ nowPlayingOpen }),
+  markSeeked: () => set({ lastSeekAt: Date.now() }),
+
+  setRepeatMode: (repeatMode) => {
+    localStorage.setItem('repeatMode', repeatMode)
+    set({ repeatMode })
+  },
+
+  toggleShuffle: () => {
+    const next = !get().shuffleOn
+    localStorage.setItem('shuffleOn', String(next))
+    set({ shuffleOn: next })
+  },
+
+  toggleLike: (path) => {
+    const liked = get().likedPaths
+    const next = liked.includes(path) ? liked.filter((p) => p !== path) : [...liked, path]
+    localStorage.setItem('likedPaths', JSON.stringify(next))
+    set({ likedPaths: next })
+  },
+
+  createPlaylist: (name) => {
+    const id = `pl_${Date.now()}`
+    const next = [...get().playlists, { id, name, trackPaths: [], createdAt: Date.now() }]
+    localStorage.setItem('playlists', JSON.stringify(next))
+    set({ playlists: next })
+    return id
+  },
+
+  deletePlaylist: (id) => {
+    const next = get().playlists.filter((p) => p.id !== id)
+    localStorage.setItem('playlists', JSON.stringify(next))
+    set({ playlists: next })
+  },
+
+  renamePlaylist: (id, name) => {
+    const next = get().playlists.map((p) => p.id === id ? { ...p, name } : p)
+    localStorage.setItem('playlists', JSON.stringify(next))
+    set({ playlists: next })
+  },
+
+  addToPlaylist: (id, path) => {
+    const next = get().playlists.map((p) =>
+      p.id === id && !p.trackPaths.includes(path)
+        ? { ...p, trackPaths: [...p.trackPaths, path] }
+        : p
+    )
+    localStorage.setItem('playlists', JSON.stringify(next))
+    set({ playlists: next })
+  },
+
+  removeFromPlaylist: (id, path) => {
+    const next = get().playlists.map((p) =>
+      p.id === id ? { ...p, trackPaths: p.trackPaths.filter((tp) => tp !== path) } : p
+    )
+    localStorage.setItem('playlists', JSON.stringify(next))
+    set({ playlists: next })
   },
 }))

@@ -16,13 +16,14 @@ pub struct ScannedTrack {
 }
 
 #[tauri::command]
-pub fn scan_folder(path: String) -> Result<Vec<ScannedTrack>, String> {
+pub fn scan_folder(path: String, skip_cover: Option<bool>) -> Result<Vec<ScannedTrack>, String> {
     let root = Path::new(&path);
     if !root.is_dir() {
         return Err(format!("Not a directory: {path}"));
     }
 
     let supported = formats::all_supported_extensions();
+    let no_cover = skip_cover.unwrap_or(false);
     let mut tracks: Vec<ScannedTrack> = Vec::new();
 
     for entry in WalkDir::new(root)
@@ -55,9 +56,17 @@ pub fn scan_folder(path: String) -> Result<Vec<ScannedTrack>, String> {
             .map(|m| m.len())
             .unwrap_or(0);
 
-        // Attempt to read full metadata; fall back to minimal stub on failure
+        // Attempt to read metadata; optionally strip cover art to speed up bulk scans
         let metadata = match formats::handler_for(file_path) {
-            Some(handler) => (handler.read_fn)(file_path).ok(),
+            Some(handler) => {
+                let mut meta = (handler.read_fn)(file_path).ok();
+                if no_cover {
+                    if let Some(ref mut m) = meta {
+                        m.cover_art = None;
+                    }
+                }
+                meta
+            }
             None => None,
         };
 

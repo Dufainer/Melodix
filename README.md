@@ -1,69 +1,86 @@
 # Melodix
 
-A modern, cross-platform audio metadata manager built with **Tauri v2**, **React 19**, **TypeScript**, and **TailwindCSS v4**.
-
-Scan local folders, view your music library, edit metadata (title, artist, album, genre, year, cover art, lyrics), and auto-fetch metadata from **iTunes** and **lrclib.net**.
+A modern, cross-platform music player and audio metadata manager built with **Tauri v2**, **React 19**, **TypeScript**, and **TailwindCSS v4**.
 
 ---
 
 ## Features
 
-- Browse and scan local music folders (recursive)
-- View tracks in a clean library list with embedded cover art
-- Edit all standard metadata fields inline
-- Bulk-edit multiple tracks at once with field-level control
-- Embed/extract cover art (base64 JPEG/PNG)
-- Auto-fetch metadata from iTunes (title, artist, album, genre, year, cover)
-- Auto-fetch synced lyrics from lrclib.net
+### Player
+- Full audio playback (FLAC, MP3, AAC, OGG, OPUS, WAV, AIFF) via rodio + symphonia
+- Instant seeking with binary-search (no delay)
+- Mini player bar with seek bar, volume, like button, and add-to-playlist
+- Full-screen Now Playing view with blurred cover art background
+- Shuffle, repeat (off / all / one)
+- MPRIS integration — system media keys and media applets on Linux
+
+### Library
+- Browse by **Songs**, **Albums**, or **Artists** from the sidebar
+- Drill into an album or artist to see its tracks
+- Search and filter across all views
 - Format badge on every track (FLAC, MP3, …)
-- Dark glassmorphism UI — accent `#1a6fff`
+- Scan local music folders recursively
+
+### Playlists
+- Create, rename and delete playlists
+- Add any song to a playlist via the `+` button on song rows, mini player, or Now Playing
+- Playlist page with Play, Shuffle and per-track remove
+- All playlists persisted locally
+
+### Likes
+- Like any song from the mini player, Now Playing view, or song rows
+- Dedicated Likes page listing all favourites
+
+### Metadata / Tag Editor
+- Edit title, artist, album, genre, year, track/disc number, lyrics, composer, comment
+- Bulk-edit multiple tracks at once with field-level control
+- Embed / extract cover art (base64 JPEG/PNG)
+- Auto-fetch metadata from **iTunes** (title, artist, album, genre, year, cover art)
+- Auto-fetch synced lyrics from **lrclib.net**
+- Rename files and organise into folders by configurable pattern (`{artist}/{album}/{track} - {title}`)
+- Conflict resolution UI for duplicate filenames
 
 ---
 
 ## Supported Formats
 
-| Format | Read | Write | Status |
-|--------|------|-------|--------|
-| FLAC   | ✅   | ✅    | Implemented |
-| MP3    | —    | —     | Roadmap |
-| AAC    | —    | —     | Roadmap |
-| OGG    | —    | —     | Roadmap |
-| OPUS   | —    | —     | Roadmap |
-| WAV    | —    | —     | Roadmap |
-| AIFF   | —    | —     | Roadmap |
-
-### Adding a new format
-
-1. Create `src-tauri/src/formats/<format>.rs` and implement the `AudioFormat` trait.
-2. Register it in `src-tauri/src/formats/mod.rs` inside the `registry()` function.
-3. That's it — scanner, commands, and UI format badge pick it up automatically.
+| Format | Playback | Tag Read | Tag Write |
+|--------|----------|----------|-----------|
+| FLAC   | ✅       | ✅       | ✅        |
+| MP3    | ✅       | —        | Roadmap   |
+| AAC    | ✅       | —        | Roadmap   |
+| OGG    | ✅       | —        | Roadmap   |
+| OPUS   | ✅       | —        | Roadmap   |
+| WAV    | ✅       | —        | Roadmap   |
+| AIFF   | ✅       | —        | Roadmap   |
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology |
-|------------|------------|
-| Desktop    | Tauri v2 |
-| Frontend   | React 19 + TypeScript |
-| Styling    | TailwindCSS v4 |
-| State      | Zustand |
-| Routing    | React Router v7 |
-| Icons      | Lucide React |
-| Rust audio | metaflac, walkdir |
+| Layer       | Technology                        |
+|-------------|-----------------------------------|
+| Desktop     | Tauri v2                          |
+| Frontend    | React 19 + TypeScript             |
+| Styling     | TailwindCSS v4                    |
+| State       | Zustand                           |
+| Routing     | React Router v7                   |
+| Icons       | Lucide React                      |
+| Audio       | rodio 0.20 + symphonia 0.5        |
+| MPRIS       | souvlaki 0.7                      |
+| Rust tags   | metaflac, walkdir                 |
 
 ---
 
 ## Prerequisites
 
 - **Rust** (stable, via [rustup](https://rustup.rs))
-- **Node.js** ≥ 20
-- **npm** ≥ 10
-- Linux system packages: `webkit2gtk-4.1`, `libayatana-appindicator`, `base-devel`, `gtk3`
+- **Node.js** ≥ 20 / **npm** ≥ 10
+- Linux system packages: `webkit2gtk-4.1`, `libayatana-appindicator`, `base-devel`, `gtk3`, `alsa-lib`, `dbus`
 
-On Arch/CachyOS:
+On Arch / CachyOS:
 ```bash
-sudo pacman -S webkit2gtk-4.1 libayatana-appindicator base-devel gtk3
+sudo pacman -S webkit2gtk-4.1 libayatana-appindicator base-devel gtk3 alsa-lib dbus
 ```
 
 ---
@@ -71,13 +88,8 @@ sudo pacman -S webkit2gtk-4.1 libayatana-appindicator base-devel gtk3
 ## Setup
 
 ```bash
-# Clone
-git clone <repo> melodix && cd melodix
-
-# Install frontend deps
+git clone https://github.com/Dufainer/Melodix && cd Melodix
 npm install
-
-# (Rust deps are fetched automatically by cargo on first build)
 ```
 
 ---
@@ -88,37 +100,19 @@ npm install
 npm run tauri dev
 ```
 
-Starts Vite dev server on `http://localhost:1420` and the Tauri window with hot-reload.
+Starts Vite on `http://localhost:1420` with hot-reload and the Tauri window.
 
 ---
 
 ## Build
 
-### Standard build
 ```bash
 npm run tauri build
 ```
 
-### AppImage (Linux)
-The `tauri.conf.json` targets `appimage` by default. After `tauri build` the `.AppImage` is found in:
-
+AppImage output:
 ```
 src-tauri/target/release/bundle/appimage/melodix_0.1.0_amd64.AppImage
-```
-
-Make it executable and run:
-```bash
-chmod +x melodix_0.1.0_amd64.AppImage
-./melodix_0.1.0_amd64.AppImage
-```
-
----
-
-## Linting & Formatting
-
-```bash
-npm run lint      # ESLint
-npm run format    # Prettier
 ```
 
 ---
@@ -128,31 +122,29 @@ npm run format    # Prettier
 ```
 melodix/
 ├── src-tauri/src/
-│   ├── lib.rs                  # Tauri setup, command registration
-│   ├── commands/
-│   │   ├── scanner.rs          # scan_folder command
-│   │   └── metadata.rs         # read/write_metadata, get_cover_art, get_supported_formats
-│   └── formats/
-│       ├── mod.rs              # AudioFormat trait + format registry
-│       └── flac.rs             # FLAC implementation
+│   ├── lib.rs
+│   └── commands/
+│       ├── audio.rs        # Playback engine (rodio + symphonia, MPRIS)
+│       ├── scanner.rs      # scan_folder
+│       ├── metadata.rs     # read/write_metadata, get_cover_art
+│       └── files.rs        # rename_track, organize_library
 └── src/
     ├── App.tsx
-    ├── styles.css              # TailwindCSS v4 + design tokens
-    ├── types/index.ts          # Shared TypeScript types
-    ├── store/index.ts          # Zustand global state
-    ├── services/
-    │   ├── autoFetch.ts        # Orchestrates iTunes + lrclib fetch pipeline
-    │   ├── itunes.ts           # iTunes Search API
-    │   └── lyrics.ts           # lrclib.net lyrics API
+    ├── store/index.ts      # Zustand global state (library, player, playlists, likes)
+    ├── types/index.ts
     ├── components/
-    │   ├── Sidebar.tsx
-    │   ├── Library.tsx         # Track list with checkboxes for bulk selection
-    │   ├── BulkEditor.tsx      # Bulk metadata editor panel
-    │   ├── Editor.tsx          # Single-track metadata editor panel
-    │   ├── FetchProgress.tsx   # Auto-fetch progress display
-    │   ├── Toolbar.tsx         # Scan folder + search
+    │   ├── Player.tsx      # Mini player bar
+    │   ├── NowPlaying.tsx  # Full-screen Now Playing
+    │   ├── Sidebar.tsx     # Navigation + playlist list
+    │   ├── AddToPlaylist.tsx
+    │   ├── Library.tsx
+    │   ├── Editor.tsx
+    │   ├── BulkEditor.tsx
     │   └── CoverArt.tsx
     └── pages/
+        ├── PlayerPage.tsx  # Songs / Albums / Artists
+        ├── PlaylistPage.tsx
+        ├── Likes.tsx
         ├── Home.tsx
         ├── Library.tsx
         └── Settings.tsx
