@@ -22,36 +22,6 @@ export interface Track {
   composer?: string
 }
 
-export interface SearchResult {
-  mbid: string
-  releaseMbid?: string
-  title: string
-  artist: string
-  album: string
-  year: number
-  coverUrl?: string
-  genre?: string
-}
-
-export interface MusicBrainzRelease {
-  id: string
-  title: string
-  date?: string
-  'artist-credit'?: Array<{
-    artist: { name: string }
-  }>
-  'cover-art-archive'?: { front: boolean }
-}
-
-export interface DiscogsRelease {
-  id: number
-  title: string
-  year?: number
-  thumb?: string
-  cover_image?: string
-  artists?: Array<{ name: string }>
-}
-
 export type FetchStepStatus = 'pending' | 'running' | 'success' | 'error' | 'skipped'
 
 export interface FetchStep {
@@ -72,4 +42,10 @@ export interface FetchResult {
   lyrics?: string
   comment?: string
   composer?: string
+}
+
+export interface OrganizeResult {
+  original_path: string
+  new_path: string | null
+  error: string | null
 }

@@ -13,6 +13,8 @@ pub fn run() {
             commands::metadata::write_metadata,
             commands::metadata::get_cover_art,
             commands::metadata::get_supported_formats,
+            commands::files::rename_track,
+            commands::files::organize_tracks,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

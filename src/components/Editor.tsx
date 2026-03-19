@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
-import { X, Save, Sparkles, AlertCircle, CheckCircle } from 'lucide-react'
+import { X, Save, Sparkles, AlertCircle, CheckCircle, FileEdit } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import { Track, FetchStep } from '../types'
 import CoverArt from './CoverArt'
 import FetchProgress from './FetchProgress'
 import { autoFetchMetadata } from '../services/autoFetch'
+import { applyPattern } from '../services/fileOps'
 
 type FieldKey = keyof Pick<Track, 'title' | 'artist' | 'album' | 'albumArtist' | 'trackNumber' | 'discNumber' | 'year' | 'genre' | 'composer'>
 
@@ -22,13 +23,15 @@ const FIELDS: Array<{ key: FieldKey; label: string; type?: string }> = [
 ]
 
 type Status = { type: 'idle' } | { type: 'saving' } | { type: 'success' } | { type: 'error'; msg: string }
+type RenameStatus = { type: 'idle' } | { type: 'success' } | { type: 'error'; msg: string }
 
 export default function Editor() {
-  const { selectedTrack, updateTrack, selectTrack } = useLibraryStore()
+  const { selectedTrack, updateTrack, renameTrackPath, selectTrack, filePattern } = useLibraryStore()
   const [form, setForm] = useState<Partial<Track>>({})
   const [status, setStatus] = useState<Status>({ type: 'idle' })
   const [fetchSteps, setFetchSteps] = useState<FetchStep[] | null>(null)
   const [fetching, setFetching] = useState(false)
+  const [renameStatus, setRenameStatus] = useState<RenameStatus>({ type: 'idle' })
 
   useEffect(() => {
     if (selectedTrack) setForm({ ...selectedTrack })
@@ -107,6 +110,23 @@ export default function Editor() {
       })
     } finally {
       setFetching(false)
+    }
+  }
+
+  async function handleRenameFile() {
+    if (!selectedTrack) return
+    const newName = applyPattern(filePattern, form)
+    setRenameStatus({ type: 'idle' })
+    try {
+      const newPath = await invoke<string>('rename_track', {
+        path: selectedTrack.path,
+        newName,
+      })
+      renameTrackPath(selectedTrack.path, newPath)
+      setRenameStatus({ type: 'success' })
+      setTimeout(() => setRenameStatus({ type: 'idle' }), 2500)
+    } catch (err) {
+      setRenameStatus({ type: 'error', msg: String(err) })
     }
   }
 
@@ -217,15 +237,15 @@ export default function Editor() {
       </div>
 
       {/* Footer actions */}
-      <div className="px-5 py-4 border-t border-white/5 shrink-0">
+      <div className="px-5 py-4 border-t border-white/5 shrink-0 space-y-2">
         {status.type === 'error' && (
-          <div className="flex items-center gap-2 text-xs text-red-400 mb-3">
+          <div className="flex items-center gap-2 text-xs text-red-400">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
             {status.msg}
           </div>
         )}
         {status.type === 'success' && (
-          <div className="flex items-center gap-2 text-xs text-green-400 mb-3">
+          <div className="flex items-center gap-2 text-xs text-green-400">
             <CheckCircle className="w-3.5 h-3.5 shrink-0" />
             Saved successfully
           </div>
@@ -238,6 +258,30 @@ export default function Editor() {
           <Save className="w-4 h-4" />
           {status.type === 'saving' ? 'Saving…' : 'Save Changes'}
         </button>
+
+        {/* Rename file */}
+        <div className="pt-1 border-t border-white/5 space-y-1.5">
+          <p className="text-xs text-zinc-600 truncate font-mono">
+            → {applyPattern(filePattern, form)}.{selectedTrack.format}
+          </p>
+          {renameStatus.type === 'error' && (
+            <p className="text-xs text-red-400 truncate">{renameStatus.msg}</p>
+          )}
+          {renameStatus.type === 'success' && (
+            <div className="flex items-center gap-1.5 text-xs text-green-400">
+              <CheckCircle className="w-3 h-3" /> File renamed
+            </div>
+          )}
+          <button
+            onClick={handleRenameFile}
+            className="w-full flex items-center justify-center gap-2 text-xs py-1.5 rounded-lg
+                       border border-white/10 hover:border-white/20
+                       text-zinc-500 hover:text-zinc-300 transition-all duration-200"
+          >
+            <FileEdit className="w-3.5 h-3.5" />
+            Rename File
+          </button>
+        </div>
       </div>
     </aside>
   )

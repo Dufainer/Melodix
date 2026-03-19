@@ -1,18 +1,100 @@
 import { invoke } from '@tauri-apps/api/core'
 import { useState, useEffect } from 'react'
 import { Info } from 'lucide-react'
+import { useLibraryStore } from '../store'
+import { buildPreviewPath } from '../services/fileOps'
+
+const VARS = ['{title}', '{artist}', '{album}', '{track}', '{disc}', '{year}', '{genre}']
+
+const PREVIEW_TRACK = {
+  title: 'Another Brick in the Wall',
+  artist: 'Pink Floyd',
+  album: 'The Wall',
+  trackNumber: 1,
+  discNumber: 0,
+  year: 1979,
+  genre: 'Rock',
+}
+
+function PatternInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-zinc-400">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-zinc-200
+                   font-mono focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30
+                   transition-all duration-200"
+      />
+    </div>
+  )
+}
 
 export default function Settings() {
   const [supportedFormats, setSupportedFormats] = useState<string[]>([])
+  const { filePattern, folderPattern, setFilePattern, setFolderPattern } = useLibraryStore()
 
   useEffect(() => {
     invoke<string[]>('get_supported_formats').then(setSupportedFormats).catch(console.error)
   }, [])
 
+  const preview = buildPreviewPath(folderPattern, filePattern, PREVIEW_TRACK, 'flac')
+
   return (
     <div className="px-8 py-8 max-w-lg">
       <h1 className="text-xl font-semibold text-white mb-6">Settings</h1>
 
+      {/* File Naming */}
+      <section className="mb-8">
+        <h2 className="text-sm font-medium text-zinc-400 mb-3 uppercase tracking-wider">File Naming</h2>
+        <div className="glass-card space-y-4">
+          <PatternInput
+            label="Folder structure"
+            value={folderPattern}
+            onChange={setFolderPattern}
+          />
+          <PatternInput
+            label="File name"
+            value={filePattern}
+            onChange={setFilePattern}
+          />
+
+          {/* Variable chips */}
+          <div className="space-y-1.5">
+            <p className="text-xs text-zinc-600">Available variables</p>
+            <div className="flex flex-wrap gap-1.5">
+              {VARS.map((v) => (
+                <span
+                  key={v}
+                  className="px-2 py-0.5 bg-accent/10 border border-accent/20 rounded text-xs font-mono text-accent"
+                >
+                  {v}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Live preview */}
+          <div className="space-y-1">
+            <p className="text-xs text-zinc-600">Preview</p>
+            <p className="text-xs font-mono text-zinc-400 bg-white/5 rounded px-3 py-2 break-all">
+              {preview}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Supported Formats */}
       <section className="mb-8">
         <h2 className="text-sm font-medium text-zinc-400 mb-3 uppercase tracking-wider">Supported Formats</h2>
         <div className="glass-card">
@@ -32,6 +114,7 @@ export default function Settings() {
         </div>
       </section>
 
+      {/* About */}
       <section>
         <h2 className="text-sm font-medium text-zinc-400 mb-3 uppercase tracking-wider">About</h2>
         <div className="glass-card flex items-start gap-3">
