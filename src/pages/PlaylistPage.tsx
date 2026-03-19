@@ -54,13 +54,13 @@ export default function PlaylistPage() {
   }
 
   function handleDelete() {
-    deletePlaylist(playlist.id)
+    deletePlaylist(playlist!.id)
     navigate('/player')
   }
 
   function commitRename() {
     const trimmed = nameValue.trim()
-    if (trimmed && trimmed !== playlist.name) renamePlaylist(playlist.id, trimmed)
+    if (trimmed && trimmed !== playlist!.name) renamePlaylist(playlist!.id, trimmed)
     setEditingName(false)
   }
 
