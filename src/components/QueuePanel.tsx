@@ -60,7 +60,7 @@ export default function QueuePanel() {
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/8 shrink-0">
           <div className="flex items-center gap-2">
             <ListMusic className="w-4 h-4 text-accent" />
-            <span className="text-sm font-semibold text-zinc-100">Cola</span>
+            <span className="text-sm font-semibold text-zinc-100">Queue</span>
           </div>
           <button
             onClick={() => setQueueOpen(false)}
@@ -75,7 +75,7 @@ export default function QueuePanel() {
           {/* Now Playing */}
           <div className="px-3 pt-3 pb-2">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-1 mb-2">
-              Reproduciendo ahora
+              Now Playing
             </p>
             <div className="flex items-center gap-3 p-2 rounded-xl bg-accent/10 border border-accent/20">
               <CoverArt src={playerTrack.coverArt} size="sm" className="shrink-0" />
@@ -92,7 +92,7 @@ export default function QueuePanel() {
           <div className="px-3 pb-4">
             <div className="flex items-center justify-between px-1 mb-2">
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                A continuación
+                Up Next
               </p>
               {upNext.length > 0 && (
                 <span className="text-[10px] text-zinc-600">{upNext.length}</span>
@@ -102,7 +102,7 @@ export default function QueuePanel() {
             {upNext.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <Music2 className="w-8 h-8 text-zinc-800" />
-                <p className="text-xs text-zinc-600">No hay más canciones</p>
+                <p className="text-xs text-zinc-600">No more tracks</p>
               </div>
             ) : (
               <div className="flex flex-col gap-0.5">

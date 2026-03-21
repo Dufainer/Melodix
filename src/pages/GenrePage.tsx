@@ -129,7 +129,7 @@ function GenreCard({ genre, onClick }: { genre: Genre; onClick: () => void }) {
           {genre.name}
         </p>
         <p className="text-[11px] text-white/60 mt-0.5">
-          {genre.tracks.length} {genre.tracks.length === 1 ? 'canción' : 'canciones'}
+          {genre.tracks.length} {genre.tracks.length === 1 ? 'track' : 'tracks'}
         </p>
       </div>
 
@@ -168,7 +168,7 @@ function GenreDetail({ genre, onBack }: { genre: Genre; onBack: () => void }) {
           className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors mb-4"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
-          Géneros
+          Genres
         </button>
 
         <div className="flex items-end gap-5">
@@ -187,10 +187,10 @@ function GenreDetail({ genre, onBack }: { genre: Genre; onBack: () => void }) {
           </div>
 
           <div className="min-w-0">
-            <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Género</p>
+            <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Genre</p>
             <h1 className="text-2xl font-bold text-white truncate">{genre.name}</h1>
             <p className="text-sm text-white/60 mt-1">
-              {genre.tracks.length} {genre.tracks.length === 1 ? 'canción' : 'canciones'}
+              {genre.tracks.length} {genre.tracks.length === 1 ? 'track' : 'tracks'}
             </p>
           </div>
         </div>
@@ -200,13 +200,13 @@ function GenreDetail({ genre, onBack }: { genre: Genre; onBack: () => void }) {
             onClick={handlePlayAll}
             className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-colors"
           >
-            <Play className="w-4 h-4 ml-0.5" /> Reproducir
+            <Play className="w-4 h-4 ml-0.5" /> Play
           </button>
           <button
             onClick={handleShuffle}
             className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors"
           >
-            <Shuffle className="w-4 h-4" /> Aleatoria
+            <Shuffle className="w-4 h-4" /> Shuffle
           </button>
         </div>
       </div>
@@ -237,7 +237,7 @@ export default function GenrePage() {
   const genres = useMemo<Genre[]>(() => {
     const map = new Map<string, Track[]>()
     for (const t of tracks) {
-      const g = (t.genre || 'Sin género').trim()
+      const g = (t.genre || 'Unknown Genre').trim()
       if (!map.has(g)) map.set(g, [])
       map.get(g)!.push(t)
     }
@@ -264,7 +264,7 @@ export default function GenrePage() {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-600">
         <Music2 className="w-16 h-16 opacity-30" />
-        <p className="text-sm">No hay canciones cargadas</p>
+        <p className="text-sm">No tracks loaded</p>
       </div>
     )
   }
@@ -274,14 +274,14 @@ export default function GenrePage() {
       {/* Header */}
       <div className="shrink-0 px-6 py-4 border-b border-white/5 flex items-center gap-4">
         <div>
-          <h1 className="text-base font-semibold text-white">Géneros</h1>
-          <p className="text-xs text-zinc-500">{genres.length} géneros · {tracks.length} canciones</p>
+          <h1 className="text-base font-semibold text-white">Genres</h1>
+          <p className="text-xs text-zinc-500">{genres.length} genres · {tracks.length} tracks</p>
         </div>
         <div className="ml-auto flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 w-52">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar género..."
+            placeholder="Search genre..."
             className="bg-transparent text-sm text-zinc-200 placeholder-zinc-600 outline-none flex-1 min-w-0"
           />
         </div>
@@ -290,7 +290,7 @@ export default function GenrePage() {
       {/* Grid */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {filtered.length === 0 ? (
-          <p className="text-sm text-zinc-600 text-center mt-12">No se encontraron géneros</p>
+          <p className="text-sm text-zinc-600 text-center mt-12">No genres found</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filtered.map(genre => (

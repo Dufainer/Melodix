@@ -12,6 +12,7 @@ interface RawTrack {
   disc_number?: number; duration?: number; cover_art?: string; bit_depth?: number
   sample_rate?: number; bitrate?: number; file_size?: number
   replay_gain_track?: number; replay_gain_album?: number
+  lyrics?: string; comment?: string; composer?: string
 }
 
 function rawToTrack(r: RawTrack): Track {
@@ -23,6 +24,7 @@ function rawToTrack(r: RawTrack): Track {
     duration: r.duration ?? 0, coverArt: r.cover_art,
     sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
     replayGainTrack: r.replay_gain_track, replayGainAlbum: r.replay_gain_album,
+    lyrics: r.lyrics, comment: r.comment, composer: r.composer,
   }
 }
 
@@ -70,7 +72,7 @@ function SleepTimerCountdown({ endsAt }: { endsAt: number }) {
   }, [endsAt])
   const m = Math.floor(remaining / 60000)
   const s = Math.floor((remaining % 60000) / 1000)
-  return <span className="text-xs text-accent tabular-nums">{m}:{s.toString().padStart(2, '0')} restantes</span>
+  return <span className="text-xs text-accent tabular-nums">{m}:{s.toString().padStart(2, '0')} remaining</span>
 }
 
 export default function Settings() {
@@ -123,16 +125,16 @@ export default function Settings() {
         <h2 className="text-sm font-medium text-zinc-400 mb-3 uppercase tracking-wider">Music Library</h2>
         <div className="glass-card space-y-3">
           <p className="text-xs text-zinc-500">
-            Carpeta de música del reproductor. Al cambiarla se re-escanea automáticamente.
+            Music folder for the player. Changing it will trigger an automatic rescan.
           </p>
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-mono truncate text-zinc-400">
-              {musicFolder ?? <span className="text-zinc-600">No configurada</span>}
+              {musicFolder ?? <span className="text-zinc-600">Not set</span>}
             </div>
             {musicFolder && (
               <button
                 onClick={() => setMusicFolder('')}
-                title="Borrar carpeta"
+                title="Clear folder"
                 className="p-2 text-zinc-500 hover:text-red-400 border border-white/10 hover:border-red-500/30 rounded-lg transition-all"
               >
                 <X className="w-4 h-4" />
@@ -142,7 +144,7 @@ export default function Settings() {
               <button
                 onClick={handleRescan}
                 disabled={isScanning}
-                title="Re-escanear carpeta"
+                title="Rescan folder"
                 className="p-2 text-zinc-500 hover:text-zinc-200 border border-white/10 rounded-lg transition-all disabled:opacity-40"
               >
                 <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
@@ -154,13 +156,13 @@ export default function Settings() {
               className="flex items-center gap-2 px-3 py-2 text-sm btn-primary shrink-0 disabled:opacity-40"
             >
               <FolderOpen className="w-4 h-4" />
-              {musicFolder ? 'Cambiar' : 'Seleccionar'}
+              {musicFolder ? 'Change' : 'Select'}
             </button>
           </div>
           {isScanning && (
             <p className="text-xs text-accent flex items-center gap-1.5">
               <RefreshCw className="w-3 h-3 animate-spin" />
-              Escaneando biblioteca…
+              Scanning library…
             </p>
           )}
         </div>
@@ -176,7 +178,7 @@ export default function Settings() {
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-medium text-zinc-400">Crossfade</label>
               <span className="text-xs text-zinc-500">
-                {crossfadeDuration === 0 ? 'Desactivado' : `${crossfadeDuration}s`}
+                {crossfadeDuration === 0 ? 'Disabled' : `${crossfadeDuration}s`}
               </span>
             </div>
             <input
@@ -189,7 +191,7 @@ export default function Settings() {
               className="w-full accent-accent cursor-pointer"
             />
             <p className="text-xs text-zinc-600 mt-1.5">
-              Fade suave al cambiar de canción (0 = desactivado)
+              Smooth fade between tracks (0 = disabled)
             </p>
           </div>
 
@@ -212,7 +214,7 @@ export default function Settings() {
               ))}
             </div>
             <p className="text-xs text-zinc-600 mt-1.5">
-              Normaliza el volumen usando los tags ReplayGain embebidos en cada archivo
+              Normalizes volume using ReplayGain tags embedded in each file
             </p>
           </div>
 
@@ -244,12 +246,12 @@ export default function Settings() {
                   onClick={() => setSleepTimer(null)}
                   className="px-3 py-1.5 text-xs rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all"
                 >
-                  Cancelar
+                  Cancel
                 </button>
               )}
             </div>
             <p className="text-xs text-zinc-600 mt-1.5">
-              Detiene la reproducción automáticamente tras el tiempo seleccionado
+              Automatically stops playback after the selected time
             </p>
           </div>
         </div>

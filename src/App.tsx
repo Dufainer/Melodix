@@ -22,6 +22,7 @@ interface RawTrack {
   disc_number?: number; duration?: number; cover_art?: string; bit_depth?: number
   sample_rate?: number; bitrate?: number; file_size?: number
   replay_gain_track?: number; replay_gain_album?: number
+  lyrics?: string; comment?: string; composer?: string
 }
 
 function rawToTrack(r: RawTrack): Track {
@@ -33,6 +34,7 @@ function rawToTrack(r: RawTrack): Track {
     duration: r.duration ?? 0, coverArt: r.cover_art,
     sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
     replayGainTrack: r.replay_gain_track, replayGainAlbum: r.replay_gain_album,
+    lyrics: r.lyrics, comment: r.comment, composer: r.composer,
   }
 }
 

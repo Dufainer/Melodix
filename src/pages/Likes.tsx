@@ -30,7 +30,7 @@ function LikedRow({ track, onPlay, onUnlike }: { track: Track; onPlay: () => voi
       )}
       <button
         onClick={(e) => { e.stopPropagation(); addToQueue(track) }}
-        title="Añadir a la cola"
+        title="Add to queue"
         className="shrink-0 p-1.5 rounded-lg text-zinc-600 hover:text-zinc-300 opacity-0 group-hover:opacity-100 transition-all"
       >
         <ListPlus className="w-4 h-4" />

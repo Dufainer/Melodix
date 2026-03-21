@@ -30,6 +30,7 @@ export default function Player() {
     likedPaths, toggleLike, recordPlay,
     queueOpen, setQueueOpen, playerQueue,
     sleepTimerEndsAt, setSleepTimer,
+    nowPlayingOpen,
   } = useLibraryStore()
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
@@ -264,6 +265,8 @@ export default function Player() {
     await invoke('player_seek', { position: secs }).catch(() => {})
   }
 
+  if (nowPlayingOpen) return null
+
   return (
     <div className="shrink-0 border-t border-white/5 bg-surface flex items-center gap-4 px-5 h-[72px]">
       {/* Track info — click opens NowPlaying */}
@@ -294,7 +297,7 @@ export default function Player() {
         <div className="flex items-center gap-4">
           <button
             onClick={toggleShuffle}
-            title="Aleatorio"
+            title="Shuffle"
             className={`transition-colors ${shuffleOn ? 'text-accent' : 'text-zinc-500 hover:text-zinc-200'}`}
           >
             <Shuffle className="w-4 h-4" />
@@ -316,7 +319,7 @@ export default function Player() {
           </button>
           <button
             onClick={() => setRepeatMode(repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off')}
-            title={repeatMode === 'off' ? 'Sin repetir' : repeatMode === 'all' ? 'Repetir todo' : 'Repetir una'}
+            title={repeatMode === 'off' ? 'No repeat' : repeatMode === 'all' ? 'Repeat all' : 'Repeat one'}
             className={`transition-colors ${repeatMode !== 'off' ? 'text-accent' : 'text-zinc-500 hover:text-zinc-200'}`}
           >
             {repeatMode === 'one'
@@ -357,7 +360,7 @@ export default function Player() {
         {sleepTimerEndsAt && (
           <button
             onClick={() => setSleepTimer(null)}
-            title="Sleep timer activo — clic para cancelar"
+            title="Sleep timer active — click to cancel"
             className="shrink-0 text-accent opacity-70 hover:opacity-100 transition-opacity"
           >
             <Moon className="w-4 h-4" />
@@ -365,7 +368,7 @@ export default function Player() {
         )}
         <button
           onClick={() => setQueueOpen(!queueOpen)}
-          title="Cola de reproducción"
+          title="Playback queue"
           className={`shrink-0 transition-colors relative ${queueOpen ? 'text-accent' : 'text-zinc-500 hover:text-zinc-200'}`}
         >
           <ListMusic className="w-4 h-4" />

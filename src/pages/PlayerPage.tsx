@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import {
   Play, Pause, Music2, Search, RefreshCw, Shuffle,
   LayoutGrid, List, ChevronLeft, Disc3, Mic2, ListPlus,
 } from 'lucide-react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import AddToPlaylist from '../components/AddToPlaylist'
@@ -103,7 +104,7 @@ function SongRow({
 
       <button
         onClick={(e) => { e.stopPropagation(); addToQueue(track) }}
-        title="Añadir a la cola"
+        title="Add to queue"
         className="shrink-0 text-zinc-600 hover:text-zinc-300 transition-colors opacity-0 group-hover:opacity-100 p-1"
       >
         <ListPlus className="w-4 h-4" />
@@ -198,11 +199,11 @@ function AlbumHeader({ album, onBack, onPlay, onShuffle }: {
         </div>
         {/* Info */}
         <div className="min-w-0 flex-1 pb-1">
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Álbum</p>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Album</p>
           <h2 className="text-xl font-bold text-white truncate leading-tight">{album.name || 'Unknown Album'}</h2>
           <p className="text-sm text-zinc-400 truncate mt-0.5">{album.artist}</p>
           <p className="text-xs text-zinc-600 mt-0.5">
-            {album.tracks.length} {album.tracks.length === 1 ? 'canción' : 'canciones'}
+            {album.tracks.length} {album.tracks.length === 1 ? 'track' : 'tracks'}
             {year ? ` · ${year}` : ''}
           </p>
         </div>
@@ -212,13 +213,13 @@ function AlbumHeader({ album, onBack, onPlay, onShuffle }: {
           onClick={onPlay}
           className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-colors"
         >
-          <Play className="w-4 h-4 ml-0.5" /> Reproducir
+          <Play className="w-4 h-4 ml-0.5" /> Play
         </button>
         <button
           onClick={onShuffle}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors"
         >
-          <Shuffle className="w-4 h-4" /> Aleatoria
+          <Shuffle className="w-4 h-4" /> Shuffle
         </button>
       </div>
     </div>
@@ -247,10 +248,10 @@ function ArtistHeader({ artist, onBack, onPlay, onShuffle }: {
         </div>
         {/* Info */}
         <div className="min-w-0 flex-1 pb-1">
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Artista</p>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Artist</p>
           <h2 className="text-xl font-bold text-white truncate leading-tight">{artist.name || 'Unknown Artist'}</h2>
           <p className="text-xs text-zinc-600 mt-1">
-            {artist.tracks.length} {artist.tracks.length === 1 ? 'canción' : 'canciones'}
+            {artist.tracks.length} {artist.tracks.length === 1 ? 'track' : 'tracks'}
           </p>
         </div>
       </div>
@@ -259,13 +260,13 @@ function ArtistHeader({ artist, onBack, onPlay, onShuffle }: {
           onClick={onPlay}
           className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-colors"
         >
-          <Play className="w-4 h-4 ml-0.5" /> Reproducir
+          <Play className="w-4 h-4 ml-0.5" /> Play
         </button>
         <button
           onClick={onShuffle}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors"
         >
-          <Shuffle className="w-4 h-4" /> Aleatoria
+          <Shuffle className="w-4 h-4" /> Shuffle
         </button>
       </div>
     </div>
@@ -279,6 +280,56 @@ function Empty({ message }: { message: string }) {
     <div className="flex flex-col items-center justify-center flex-1 gap-3 text-zinc-600 py-16">
       <Music2 className="w-12 h-12 opacity-20" />
       <p className="text-sm text-zinc-500">{message}</p>
+    </div>
+  )
+}
+
+// ── Virtualized song list ──────────────────────────────────────────────────────
+
+const SONG_ROW_HEIGHT = 60
+
+function VirtualSongList({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => SONG_ROW_HEIGHT,
+    overscan: 8,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto px-3">
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map((item) => {
+          const track = tracks[item.index]
+          return (
+            <div
+              key={track.path}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: item.size,
+                transform: `translateY(${item.start}px)`,
+              }}
+            >
+              <SongRow
+                track={track}
+                isActive={playerTrack?.path === track.path}
+                isPlaying={playerTrack?.path === track.path && isPlaying}
+                onPlay={() => onPlay(track, tracks)}
+              />
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -511,7 +562,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
       </header>
 
       {/* ── Content ────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-3 pb-4">
+      <div className={`flex-1 min-h-0 ${!inDrill && tab === 'songs' ? 'overflow-hidden' : 'overflow-y-auto px-3 pb-4'}`}>
 
         {/* Drill-down: Album detail */}
         {drillAlbum && (() => {
@@ -581,19 +632,16 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
           )
         })()}
 
-        {/* Songs tab */}
+        {/* Songs tab — virtualized */}
         {!inDrill && tab === 'songs' && (
           filtered.length === 0
             ? <Empty message={isScanning ? 'Scanning…' : 'No songs found'} />
-            : filtered.map((track) => (
-              <SongRow
-                key={track.path}
-                track={track}
-                isActive={playerTrack?.path === track.path}
-                isPlaying={playerTrack?.path === track.path && isPlaying}
-                onPlay={() => handlePlayTrack(track, filtered)}
+            : <VirtualSongList
+                tracks={filtered}
+                playerTrack={playerTrack}
+                isPlaying={isPlaying}
+                onPlay={handlePlayTrack}
               />
-            ))
         )}
 
         {/* Albums tab */}

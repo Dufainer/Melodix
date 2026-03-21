@@ -146,6 +146,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
         state.selectedTrack?.path === path
           ? { ...state.selectedTrack, ...updates }
           : state.selectedTrack,
+      playerTrack:
+        state.playerTrack?.path === path
+          ? { ...state.playerTrack, ...updates }
+          : state.playerTrack,
     })),
 
   renameTrackPath: (oldPath, newPath) =>

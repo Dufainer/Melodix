@@ -20,7 +20,7 @@ export default function LibraryPage() {
           <LibraryList />
         </main>
         {showPanel && (
-          <div className="fixed right-0 top-0 h-full w-[340px] border-l border-white/5 bg-surface flex flex-col z-10">
+          <div className="fixed right-0 top-0 bottom-[72px] w-[340px] border-l border-white/5 bg-surface flex flex-col z-10">
             {showBulk ? <BulkEditor /> : <Editor />}
           </div>
         )}
