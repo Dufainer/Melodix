@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { X, GripVertical, ListMusic, Music2 } from 'lucide-react'
+import { X, GripVertical, ListMusic, Music2, Trash2 } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import CoverArt from './CoverArt'
 
@@ -7,11 +7,12 @@ export default function QueuePanel() {
   const {
     queueOpen, setQueueOpen,
     playerTrack, playerQueue,
-    removeFromQueue, reorderQueue,
+    removeFromQueue, reorderQueue, clearQueue,
     playTrack,
   } = useLibraryStore()
 
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const [confirmClear, setConfirmClear] = useState(false)
   const dragFromIdx = useRef<number | null>(null)
 
   const currentIdx = playerQueue.findIndex(t => t.path === playerTrack?.path)
@@ -52,7 +53,7 @@ export default function QueuePanel() {
       {/* Panel */}
       <div
         className={`fixed top-0 right-0 bottom-[72px] w-76 z-50 flex flex-col
-                    bg-zinc-950 border-l border-white/8
+                    bg-surface border-l border-white/8
                     transition-transform duration-300 ease-out
                     ${queueOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
@@ -62,12 +63,40 @@ export default function QueuePanel() {
             <ListMusic className="w-4 h-4 text-accent" />
             <span className="text-sm font-semibold text-zinc-100">Queue</span>
           </div>
-          <button
-            onClick={() => setQueueOpen(false)}
-            className="text-zinc-500 hover:text-zinc-200 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            {upNext.length > 0 && (
+              confirmClear ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { clearQueue(); setConfirmClear(false) }}
+                    className="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={() => setConfirmClear(false)}
+                    className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/5 text-zinc-400 hover:bg-white/10 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmClear(true)}
+                  title="Clear queue"
+                  className="p-1 rounded text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )
+            )}
+            <button
+              onClick={() => { setQueueOpen(false); setConfirmClear(false) }}
+              className="p-1 text-zinc-500 hover:text-zinc-200 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}

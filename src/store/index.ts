@@ -86,6 +86,7 @@ interface LibraryState {
   addToQueue: (track: Track) => void
   removeFromQueue: (index: number) => void
   reorderQueue: (from: number, to: number) => void
+  clearQueue: () => void
 
   // Playback settings
   crossfadeDuration: number        // seconds, 0 = disabled
@@ -280,6 +281,13 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     const [item] = next.splice(from, 1)
     next.splice(to, 0, item)
     set({ playerQueue: next })
+  },
+
+  clearQueue: () => {
+    const { playerQueue, playerTrack } = get()
+    // Keep only the currently playing track
+    const current = playerQueue.find(t => t.path === playerTrack?.path)
+    set({ playerQueue: current ? [current] : [] })
   },
 
   setRepeatMode: (repeatMode) => {
