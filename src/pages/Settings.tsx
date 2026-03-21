@@ -1,9 +1,28 @@
 import { invoke } from '@tauri-apps/api/core'
 import { useState, useEffect } from 'react'
-import { Info, FolderOpen, X } from 'lucide-react'
+import { Info, FolderOpen, X, RefreshCw, Moon } from 'lucide-react'
 import { open } from '@tauri-apps/plugin-dialog'
 import { useLibraryStore } from '../store'
 import { buildPreviewPath } from '../services/fileOps'
+import { Track } from '../types'
+
+interface RawTrack {
+  path: string; format: string; title?: string; artist?: string; album?: string
+  album_artist?: string; genre?: string; year?: number; track_number?: number
+  disc_number?: number; duration?: number; cover_art?: string; bit_depth?: number
+  sample_rate?: number; bitrate?: number; file_size?: number
+}
+
+function rawToTrack(r: RawTrack): Track {
+  return {
+    path: r.path, format: r.format as Track['format'],
+    title: r.title ?? '', artist: r.artist ?? '', album: r.album ?? '',
+    albumArtist: r.album_artist ?? '', genre: r.genre ?? '', year: r.year ?? 0,
+    trackNumber: r.track_number ?? 0, discNumber: r.disc_number ?? 0,
+    duration: r.duration ?? 0, coverArt: r.cover_art,
+    sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
+  }
+}
 
 const VARS = ['{title}', '{artist}', '{album}', '{track}', '{disc}', '{year}', '{genre}']
 
@@ -41,15 +60,48 @@ function PatternInput({
   )
 }
 
+function SleepTimerCountdown({ endsAt }: { endsAt: number }) {
+  const [remaining, setRemaining] = useState(Math.max(0, endsAt - Date.now()))
+  useEffect(() => {
+    const iv = setInterval(() => setRemaining(Math.max(0, endsAt - Date.now())), 1000)
+    return () => clearInterval(iv)
+  }, [endsAt])
+  const m = Math.floor(remaining / 60000)
+  const s = Math.floor((remaining % 60000) / 1000)
+  return <span className="text-xs text-accent tabular-nums">{m}:{s.toString().padStart(2, '0')} restantes</span>
+}
+
 export default function Settings() {
   const [supportedFormats, setSupportedFormats] = useState<string[]>([])
-  const { filePattern, folderPattern, setFilePattern, setFolderPattern, musicFolder, setMusicFolder } = useLibraryStore()
+  const {
+    filePattern, folderPattern, setFilePattern, setFolderPattern,
+    musicFolder, setMusicFolder, setTracks, isScanning, setScanning,
+    crossfadeDuration, setCrossfadeDuration,
+    sleepTimerEndsAt, setSleepTimer,
+  } = useLibraryStore()
+
+  async function scanFolder(path: string) {
+    setScanning(true)
+    try {
+      const raw = await invoke<RawTrack[]>('scan_folder', { path, skipCover: true })
+      setTracks(raw.map(rawToTrack))
+    } catch (err) {
+      console.error('Scan failed:', err)
+    } finally {
+      setScanning(false)
+    }
+  }
 
   async function handlePickMusicFolder() {
     const selected = await open({ directory: true, multiple: false, title: 'Select Music Folder' })
     if (selected && typeof selected === 'string') {
       setMusicFolder(selected)
+      await scanFolder(selected)
     }
+  }
+
+  async function handleRescan() {
+    if (musicFolder) await scanFolder(musicFolder)
   }
 
   useEffect(() => {
@@ -66,26 +118,112 @@ export default function Settings() {
       <section className="mb-8">
         <h2 className="text-sm font-medium text-zinc-400 mb-3 uppercase tracking-wider">Music Library</h2>
         <div className="glass-card space-y-3">
-          <p className="text-xs text-zinc-500">Folder scanned by the Player. Select the root folder where all your music is stored.</p>
+          <p className="text-xs text-zinc-500">
+            Carpeta de música del reproductor. Al cambiarla se re-escanea automáticamente.
+          </p>
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-mono truncate text-zinc-400">
-              {musicFolder ?? <span className="text-zinc-600">Not set</span>}
+              {musicFolder ?? <span className="text-zinc-600">No configurada</span>}
             </div>
             {musicFolder && (
               <button
                 onClick={() => setMusicFolder('')}
+                title="Borrar carpeta"
                 className="p-2 text-zinc-500 hover:text-red-400 border border-white/10 hover:border-red-500/30 rounded-lg transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
+            {musicFolder && (
+              <button
+                onClick={handleRescan}
+                disabled={isScanning}
+                title="Re-escanear carpeta"
+                className="p-2 text-zinc-500 hover:text-zinc-200 border border-white/10 rounded-lg transition-all disabled:opacity-40"
+              >
+                <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
+              </button>
+            )}
             <button
               onClick={handlePickMusicFolder}
-              className="flex items-center gap-2 px-3 py-2 text-sm btn-primary shrink-0"
+              disabled={isScanning}
+              className="flex items-center gap-2 px-3 py-2 text-sm btn-primary shrink-0 disabled:opacity-40"
             >
               <FolderOpen className="w-4 h-4" />
-              {musicFolder ? 'Change' : 'Select'}
+              {musicFolder ? 'Cambiar' : 'Seleccionar'}
             </button>
+          </div>
+          {isScanning && (
+            <p className="text-xs text-accent flex items-center gap-1.5">
+              <RefreshCw className="w-3 h-3 animate-spin" />
+              Escaneando biblioteca…
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Playback */}
+      <section className="mb-8">
+        <h2 className="text-sm font-medium text-zinc-400 mb-3 uppercase tracking-wider">Playback</h2>
+        <div className="glass-card space-y-6">
+
+          {/* Crossfade */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-zinc-400">Crossfade</label>
+              <span className="text-xs text-zinc-500">
+                {crossfadeDuration === 0 ? 'Desactivado' : `${crossfadeDuration}s`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={12}
+              step={1}
+              value={crossfadeDuration}
+              onChange={(e) => setCrossfadeDuration(Number(e.target.value))}
+              className="w-full accent-accent cursor-pointer"
+            />
+            <p className="text-xs text-zinc-600 mt-1.5">
+              Fade suave al cambiar de canción (0 = desactivado)
+            </p>
+          </div>
+
+          {/* Sleep Timer */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
+                <Moon className="w-3.5 h-3.5" />
+                Sleep timer
+              </label>
+              {sleepTimerEndsAt && <SleepTimerCountdown endsAt={sleepTimerEndsAt} />}
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {[15, 30, 45, 60].map((min) => (
+                <button
+                  key={min}
+                  onClick={() => setSleepTimer(min)}
+                  className={`px-3 py-1.5 text-xs rounded-lg border transition-all ${
+                    sleepTimerEndsAt
+                      ? 'bg-white/5 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20'
+                      : 'bg-white/5 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20'
+                  }`}
+                >
+                  {min} min
+                </button>
+              ))}
+              {sleepTimerEndsAt && (
+                <button
+                  onClick={() => setSleepTimer(null)}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-zinc-600 mt-1.5">
+              Detiene la reproducción automáticamente tras el tiempo seleccionado
+            </p>
           </div>
         </div>
       </section>

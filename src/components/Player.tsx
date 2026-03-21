@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Heart } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Heart, ListMusic, Moon } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import CoverArt from './CoverArt'
 import AddToPlaylist from './AddToPlaylist'
@@ -28,14 +28,24 @@ export default function Player() {
     repeatMode, shuffleOn, setRepeatMode, toggleShuffle, playKey,
     position, duration, setPosition, setDuration, setNowPlayingOpen, markSeeked,
     likedPaths, toggleLike, recordPlay,
+    queueOpen, setQueueOpen, playerQueue,
+    sleepTimerEndsAt, setSleepTimer,
   } = useLibraryStore()
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
   const [loading, setLoading] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const trackPathRef = useRef<string | null>(null)
-  const listenStartRef = useRef<number | null>(null)   // Date.now() when current segment started
-  const accumulatedRef = useRef<number>(0)             // seconds actually listened so far
+  const listenStartRef = useRef<number | null>(null)
+  const accumulatedRef = useRef<number>(0)
+  const volumeRef = useRef(volume)
+  const mutedRef = useRef(muted)
+  const fadeInIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const crossfadeActiveRef = useRef(false)
+
+  // Keep refs current so interval callbacks always see latest values
+  useEffect(() => { volumeRef.current = volume }, [volume])
+  useEffect(() => { mutedRef.current = muted }, [muted])
 
   function getListened(): number {
     if (listenStartRef.current !== null)
@@ -70,14 +80,34 @@ export default function Player() {
     stopPoll()
     pollRef.current = setInterval(async () => {
       try {
+        // Sleep timer check
+        const s = useLibraryStore.getState()
+        if (s.sleepTimerEndsAt && Date.now() >= s.sleepTimerEndsAt) {
+          s.setSleepTimer(null)
+          s.setIsPlaying(false)
+          invoke('player_pause').catch(() => {})
+          stopPoll()
+          return
+        }
+
         const state = await invoke<PlayerState>('player_get_state')
-        // Suppress position updates for 1.5s after a seek so the backend has time to reflect it
         if (Date.now() - useLibraryStore.getState().lastSeekAt > 1500) {
           setPosition(state.position)
         }
         if (state.duration > 0) setDuration(state.duration)
 
-        // Auto-advance when track finishes — record actual listened seconds
+        // Crossfade fade-out: reduce volume as track nears end
+        const xfade = useLibraryStore.getState().crossfadeDuration
+        if (xfade > 0 && state.duration > 0 && !state.finished && !crossfadeActiveRef.current) {
+          const remaining = state.duration - state.position
+          if (remaining > 0 && remaining <= xfade) {
+            const ratio = remaining / xfade
+            const baseVol = mutedRef.current ? 0 : volumeRef.current
+            invoke('player_set_volume', { volume: baseVol * ratio }).catch(() => {})
+          }
+        }
+
+        // Auto-advance when track finishes
         if (state.finished && trackPathRef.current) {
           const listened = getListened()
           if (listened >= 5) recordPlay(trackPathRef.current, listened)
@@ -116,6 +146,13 @@ export default function Player() {
       return
     }
 
+    // Clear any active crossfade fade-in
+    if (fadeInIntervalRef.current) {
+      clearInterval(fadeInIntervalRef.current)
+      fadeInIntervalRef.current = null
+    }
+    crossfadeActiveRef.current = false
+
     // Record actual listened time for the previous track before switching
     const prevPath = trackPathRef.current
     if (prevPath && prevPath !== playerTrack.path) {
@@ -129,18 +166,35 @@ export default function Player() {
     setPosition(0)
     setDuration(0)
 
-
     invoke<number>('player_play', {
       path: playerTrack.path,
       title: playerTrack.title || null,
       artist: playerTrack.artist || null,
       album: playerTrack.album || null,
     })
-      .then((dur) => {
+      .then(async (dur) => {
         if (dur > 0) setDuration(dur)
-        // Apply current volume/mute
-        const v = muted ? 0 : volume
-        return invoke('player_set_volume', { volume: v })
+        const xfade = useLibraryStore.getState().crossfadeDuration
+        if (xfade > 0) {
+          // Fade in from 0
+          crossfadeActiveRef.current = true
+          await invoke('player_set_volume', { volume: 0 })
+          let elapsed = 0
+          fadeInIntervalRef.current = setInterval(() => {
+            elapsed += 0.1
+            const ratio = Math.min(elapsed / xfade, 1)
+            const baseVol = mutedRef.current ? 0 : volumeRef.current
+            invoke('player_set_volume', { volume: baseVol * ratio }).catch(() => {})
+            if (ratio >= 1) {
+              crossfadeActiveRef.current = false
+              if (fadeInIntervalRef.current) clearInterval(fadeInIntervalRef.current)
+              fadeInIntervalRef.current = null
+            }
+          }, 100)
+        } else {
+          const v = mutedRef.current ? 0 : volumeRef.current
+          await invoke('player_set_volume', { volume: v })
+        }
       })
       .then(() => startPoll())
       .catch((err) => {
@@ -174,14 +228,16 @@ export default function Player() {
     }
   }, [isPlaying, loading])
 
-  // Sync volume/mute with Rust
+  // Sync volume/mute with Rust (skip during crossfade fade-in)
   useEffect(() => {
+    if (crossfadeActiveRef.current) return
     const v = muted ? 0 : volume
     invoke('player_set_volume', { volume: v }).catch(() => {})
   }, [volume, muted])
 
   // Cleanup on unmount
   useEffect(() => () => {
+    if (fadeInIntervalRef.current) clearInterval(fadeInIntervalRef.current)
     stopPoll()
     invoke('player_stop').catch(() => {})
   }, [])
@@ -282,6 +338,31 @@ export default function Player() {
             {formatTime(duration)}
           </span>
         </div>
+      </div>
+
+      {/* Queue + Sleep timer indicator */}
+      <div className="flex items-center gap-3 w-40 shrink-0">
+        {sleepTimerEndsAt && (
+          <button
+            onClick={() => setSleepTimer(null)}
+            title="Sleep timer activo — clic para cancelar"
+            className="shrink-0 text-accent opacity-70 hover:opacity-100 transition-opacity"
+          >
+            <Moon className="w-4 h-4" />
+          </button>
+        )}
+        <button
+          onClick={() => setQueueOpen(!queueOpen)}
+          title="Cola de reproducción"
+          className={`shrink-0 transition-colors relative ${queueOpen ? 'text-accent' : 'text-zinc-500 hover:text-zinc-200'}`}
+        >
+          <ListMusic className="w-4 h-4" />
+          {playerQueue.length > 1 && (
+            <span className="absolute -top-1.5 -right-1.5 text-[9px] leading-none bg-accent text-black font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+              {Math.min(playerQueue.length - 1, 99)}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Volume */}

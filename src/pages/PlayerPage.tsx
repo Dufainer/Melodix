@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import {
   Play, Pause, Music2, Search, RefreshCw, Shuffle,
-  LayoutGrid, List, ChevronLeft, Disc3, Mic2,
+  LayoutGrid, List, ChevronLeft, Disc3, Mic2, ListPlus,
 } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import { Track } from '../types'
@@ -61,6 +61,7 @@ function SongRow({
   track: Track; isActive: boolean; isPlaying: boolean
   onPlay: () => void
 }) {
+  const addToQueue = useLibraryStore(s => s.addToQueue)
   return (
     <div
       onClick={onPlay}
@@ -100,6 +101,13 @@ function SongRow({
         </span>
       )}
 
+      <button
+        onClick={(e) => { e.stopPropagation(); addToQueue(track) }}
+        title="Añadir a la cola"
+        className="shrink-0 text-zinc-600 hover:text-zinc-300 transition-colors opacity-0 group-hover:opacity-100 p-1"
+      >
+        <ListPlus className="w-4 h-4" />
+      </button>
       <AddToPlaylist trackPath={track.path} />
     </div>
   )
@@ -167,20 +175,98 @@ function ArtistRow({ artist, onClick }: { artist: Artist; onClick: () => void })
   )
 }
 
-// ── Sub-view header (back button + title) ─────────────────────────────────────
+// ── Album detail header ────────────────────────────────────────────────────────
 
-function SubHeader({ title, subtitle, onBack }: { title: string; subtitle?: string; onBack: () => void }) {
+function AlbumHeader({ album, onBack, onPlay, onShuffle }: {
+  album: Album; onBack: () => void
+  onPlay: () => void; onShuffle: () => void
+}) {
+  const year = album.tracks.find(t => t.year)?.year
   return (
-    <div className="flex items-center gap-3 px-3 pb-4 shrink-0">
+    <div className="shrink-0 bg-gradient-to-b from-zinc-800/60 to-transparent px-5 pt-4 pb-5">
       <button
         onClick={onBack}
-        className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors"
+        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors mb-4"
       >
-        <ChevronLeft className="w-4 h-4 text-zinc-300" />
+        <ChevronLeft className="w-3.5 h-3.5" /> Albums
       </button>
-      <div className="min-w-0">
-        <p className="text-base font-bold text-zinc-100 truncate">{title}</p>
-        {subtitle && <p className="text-xs text-zinc-500">{subtitle}</p>}
+      <div className="flex items-end gap-4">
+        {/* Cover */}
+        <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 shadow-2xl bg-white/5 relative flex items-center justify-center">
+          <Disc3 className="w-10 h-10 text-zinc-700 absolute" />
+          <LazyCover path={album.firstTrackPath} className="absolute inset-0 w-full h-full" />
+        </div>
+        {/* Info */}
+        <div className="min-w-0 flex-1 pb-1">
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Álbum</p>
+          <h2 className="text-xl font-bold text-white truncate leading-tight">{album.name || 'Unknown Album'}</h2>
+          <p className="text-sm text-zinc-400 truncate mt-0.5">{album.artist}</p>
+          <p className="text-xs text-zinc-600 mt-0.5">
+            {album.tracks.length} {album.tracks.length === 1 ? 'canción' : 'canciones'}
+            {year ? ` · ${year}` : ''}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 mt-4">
+        <button
+          onClick={onPlay}
+          className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-colors"
+        >
+          <Play className="w-4 h-4 ml-0.5" /> Reproducir
+        </button>
+        <button
+          onClick={onShuffle}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors"
+        >
+          <Shuffle className="w-4 h-4" /> Aleatoria
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Artist detail header ───────────────────────────────────────────────────────
+
+function ArtistHeader({ artist, onBack, onPlay, onShuffle }: {
+  artist: Artist; onBack: () => void
+  onPlay: () => void; onShuffle: () => void
+}) {
+  return (
+    <div className="shrink-0 bg-gradient-to-b from-zinc-800/60 to-transparent px-5 pt-4 pb-5">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors mb-4"
+      >
+        <ChevronLeft className="w-3.5 h-3.5" /> Artists
+      </button>
+      <div className="flex items-end gap-4">
+        {/* Avatar */}
+        <div className="w-24 h-24 rounded-full overflow-hidden shrink-0 shadow-2xl bg-white/5 relative flex items-center justify-center">
+          <Mic2 className="w-10 h-10 text-zinc-700 absolute" />
+          <LazyCover path={artist.firstTrackPath} className="absolute inset-0 w-full h-full" />
+        </div>
+        {/* Info */}
+        <div className="min-w-0 flex-1 pb-1">
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Artista</p>
+          <h2 className="text-xl font-bold text-white truncate leading-tight">{artist.name || 'Unknown Artist'}</h2>
+          <p className="text-xs text-zinc-600 mt-1">
+            {artist.tracks.length} {artist.tracks.length === 1 ? 'canción' : 'canciones'}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 mt-4">
+        <button
+          onClick={onPlay}
+          className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-bold hover:bg-zinc-100 transition-colors"
+        >
+          <Play className="w-4 h-4 ml-0.5" /> Reproducir
+        </button>
+        <button
+          onClick={onShuffle}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors"
+        >
+          <Shuffle className="w-4 h-4" /> Aleatoria
+        </button>
       </div>
     </div>
   )
@@ -427,28 +513,73 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
       {/* ── Content ────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
 
-        {/* Drill-down: Album or Artist song list */}
-        {inDrill && (
-          <div className="flex flex-col h-full">
-            <SubHeader
-              title={drillAlbum ?? drillArtist ?? ''}
-              subtitle={`${drillTracks.length} songs`}
-              onBack={closeDrill}
-            />
-            {drillTracks.length === 0
-              ? <Empty message="No songs found" />
-              : drillTracks.map((track) => (
-                <SongRow
-                  key={track.path}
-                  track={track}
-                  isActive={playerTrack?.path === track.path}
-                  isPlaying={playerTrack?.path === track.path && isPlaying}
-                  onPlay={() => handlePlayTrack(track, drillTracks)}
-                />
-              ))
-            }
-          </div>
-        )}
+        {/* Drill-down: Album detail */}
+        {drillAlbum && (() => {
+          const album = albums.find(a => a.name === drillAlbum)
+          if (!album) return null
+          return (
+            <div className="flex flex-col h-full -mx-3 -mt-4">
+              <AlbumHeader
+                album={album}
+                onBack={closeDrill}
+                onPlay={() => drillTracks.length > 0 && playTrack(drillTracks[0], drillTracks)}
+                onShuffle={() => {
+                  if (drillTracks.length === 0) return
+                  const s = [...drillTracks].sort(() => Math.random() - 0.5)
+                  playTrack(s[0], s)
+                }}
+              />
+              <div className="px-3 pb-4">
+                {drillTracks.length === 0
+                  ? <Empty message="No songs found" />
+                  : drillTracks.map((track) => (
+                    <SongRow
+                      key={track.path}
+                      track={track}
+                      isActive={playerTrack?.path === track.path}
+                      isPlaying={playerTrack?.path === track.path && isPlaying}
+                      onPlay={() => handlePlayTrack(track, drillTracks)}
+                    />
+                  ))
+                }
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Drill-down: Artist detail */}
+        {drillArtist && (() => {
+          const artist = artists.find(a => a.name === drillArtist)
+          if (!artist) return null
+          return (
+            <div className="flex flex-col h-full -mx-3 -mt-4">
+              <ArtistHeader
+                artist={artist}
+                onBack={closeDrill}
+                onPlay={() => drillTracks.length > 0 && playTrack(drillTracks[0], drillTracks)}
+                onShuffle={() => {
+                  if (drillTracks.length === 0) return
+                  const s = [...drillTracks].sort(() => Math.random() - 0.5)
+                  playTrack(s[0], s)
+                }}
+              />
+              <div className="px-3 pb-4">
+                {drillTracks.length === 0
+                  ? <Empty message="No songs found" />
+                  : drillTracks.map((track) => (
+                    <SongRow
+                      key={track.path}
+                      track={track}
+                      isActive={playerTrack?.path === track.path}
+                      isPlaying={playerTrack?.path === track.path && isPlaying}
+                      onPlay={() => handlePlayTrack(track, drillTracks)}
+                    />
+                  ))
+                }
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Songs tab */}
         {!inDrill && tab === 'songs' && (
@@ -491,7 +622,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
                     >
                       <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 relative bg-white/5 flex items-center justify-center">
                         <Disc3 className="w-5 h-5 text-zinc-600" />
-                        <LazyCover trackPath={album.firstTrackPath} className="absolute inset-0 w-full h-full object-cover" />
+                        <LazyCover path={album.firstTrackPath} className="absolute inset-0 w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-zinc-200 truncate group-hover:text-white">{album.name}</p>

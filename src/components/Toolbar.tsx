@@ -51,7 +51,7 @@ function rawToTrack(r: RawTrack): Track {
 }
 
 export default function Toolbar() {
-  const { isScanning, searchQuery, setTracks, setScanning, setSearchQuery } = useLibraryStore()
+  const { isScanning, searchQuery, setEditorTracks, setScanning, setSearchQuery } = useLibraryStore()
 
   async function handleScanFolder() {
     const selected = await open({ directory: true, multiple: false, title: 'Select Music Folder' })
@@ -60,7 +60,7 @@ export default function Toolbar() {
     setScanning(true)
     try {
       const raw: RawTrack[] = await invoke('scan_folder', { path: selected })
-      setTracks(raw.map(rawToTrack))
+      setEditorTracks(raw.map(rawToTrack))
     } catch (err) {
       console.error('Scan failed:', err)
     } finally {

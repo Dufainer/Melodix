@@ -9,8 +9,10 @@ import Settings from './pages/Settings'
 import LikesPage from './pages/Likes'
 import PlaylistPage from './pages/PlaylistPage'
 import StatsPage from './pages/StatsPage'
+import GenrePage from './pages/GenrePage'
 import Player from './components/Player'
 import NowPlaying from './components/NowPlaying'
+import QueuePanel from './components/QueuePanel'
 import { useLibraryStore } from './store'
 import { Track } from './types'
 
@@ -61,11 +63,13 @@ function AppContent() {
             <Route path="/albums" element={<PlayerPage defaultTab="albums" standalone />} />
             <Route path="/artists" element={<PlayerPage defaultTab="artists" standalone />} />
             <Route path="/stats" element={<StatsPage />} />
+            <Route path="/genres" element={<GenrePage />} />
           </Routes>
         </div>
       </div>
       <Player />
       <NowPlaying />
+      <QueuePanel />
     </div>
   )
 }

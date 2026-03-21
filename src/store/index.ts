@@ -20,7 +20,8 @@ export interface PlayEvent {
 }
 
 interface LibraryState {
-  tracks: Track[]
+  tracks: Track[]         // main player library (from musicFolder in Settings)
+  editorTracks: Track[]  // tracks loaded in the Tag Editor (independent folder)
   selectedTrack: Track | null
   selectedPaths: string[]
   isScanning: boolean
@@ -48,6 +49,7 @@ interface LibraryState {
 
   setTracks: (tracks: Track[]) => void
   addTracks: (tracks: Track[]) => void
+  setEditorTracks: (tracks: Track[]) => void
   selectTrack: (track: Track | null) => void
   updateTrack: (path: string, updates: Partial<Track>) => void
   renameTrackPath: (oldPath: string, newPath: string) => void
@@ -79,10 +81,22 @@ interface LibraryState {
   setDuration: (dur: number) => void
   setNowPlayingOpen: (open: boolean) => void
   markSeeked: () => void
+  queueOpen: boolean
+  setQueueOpen: (open: boolean) => void
+  addToQueue: (track: Track) => void
+  removeFromQueue: (index: number) => void
+  reorderQueue: (from: number, to: number) => void
+
+  // Playback settings
+  crossfadeDuration: number        // seconds, 0 = disabled
+  sleepTimerEndsAt: number | null  // ms timestamp, null = inactive
+  setCrossfadeDuration: (seconds: number) => void
+  setSleepTimer: (minutes: number | null) => void
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
   tracks: [],
+  editorTracks: [],
   selectedTrack: null,
   selectedPaths: [],
   isScanning: false,
@@ -102,6 +116,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   duration: 0,
   nowPlayingOpen: false,
   lastSeekAt: 0,
+  queueOpen: false,
   likedPaths: JSON.parse(localStorage.getItem('likedPaths') ?? '[]'),
   playlists: JSON.parse(localStorage.getItem('playlists') ?? '[]'),
   recentlyPlayed: JSON.parse(localStorage.getItem('recentlyPlayed') ?? '[]'),
@@ -117,11 +132,14 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       ],
     })),
 
+  setEditorTracks: (editorTracks) => set({ editorTracks }),
+
   selectTrack: (track) => set({ selectedTrack: track }),
 
   updateTrack: (path, updates) =>
     set((state) => ({
       tracks: state.tracks.map((t) => (t.path === path ? { ...t, ...updates } : t)),
+      editorTracks: state.editorTracks.map((t) => (t.path === path ? { ...t, ...updates } : t)),
       selectedTrack:
         state.selectedTrack?.path === path
           ? { ...state.selectedTrack, ...updates }
@@ -131,6 +149,9 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   renameTrackPath: (oldPath, newPath) =>
     set((state) => ({
       tracks: state.tracks.map((t) =>
+        t.path === oldPath ? { ...t, path: newPath } : t
+      ),
+      editorTracks: state.editorTracks.map((t) =>
         t.path === oldPath ? { ...t, path: newPath } : t
       ),
       selectedTrack:
@@ -216,6 +237,37 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   setDuration: (duration) => set({ duration }),
   setNowPlayingOpen: (nowPlayingOpen) => set({ nowPlayingOpen }),
   markSeeked: () => set({ lastSeekAt: Date.now() }),
+
+  crossfadeDuration: Number(localStorage.getItem('crossfadeDuration') ?? 0),
+  sleepTimerEndsAt: null,
+
+  setCrossfadeDuration: (seconds) => {
+    localStorage.setItem('crossfadeDuration', String(seconds))
+    set({ crossfadeDuration: seconds })
+  },
+
+  setSleepTimer: (minutes) => {
+    set({ sleepTimerEndsAt: minutes === null ? null : Date.now() + minutes * 60 * 1000 })
+  },
+
+  setQueueOpen: (queueOpen) => set({ queueOpen }),
+
+  addToQueue: (track) => set((state) => ({
+    playerQueue: [...state.playerQueue, track],
+  })),
+
+  removeFromQueue: (index) => {
+    const next = [...get().playerQueue]
+    next.splice(index, 1)
+    set({ playerQueue: next })
+  },
+
+  reorderQueue: (from, to) => {
+    const next = [...get().playerQueue]
+    const [item] = next.splice(from, 1)
+    next.splice(to, 0, item)
+    set({ playerQueue: next })
+  },
 
   setRepeatMode: (repeatMode) => {
     localStorage.setItem('repeatMode', repeatMode)

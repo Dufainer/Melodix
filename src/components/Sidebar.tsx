@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Library, Settings, Music2, Disc3, ListMusic, Heart, Mic2, Plus, ListVideo, Pencil, Trash2, BarChart2 } from 'lucide-react'
+import { Library, Settings, Music2, Disc3, ListMusic, Heart, Mic2, Plus, ListVideo, Pencil, Trash2, BarChart2, Tag } from 'lucide-react'
 import { useLibraryStore } from '../store'
 
 const NAV_ITEMS = [
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/player', label: 'Songs', icon: ListMusic },
   { to: '/albums', label: 'Albums', icon: Disc3 },
   { to: '/artists', label: 'Artists', icon: Mic2 },
+  { to: '/genres', label: 'Genres', icon: Tag },
   { to: '/likes', label: 'Likes', icon: Heart },
   { to: '/stats', label: 'Stats', icon: BarChart2 },
 ]

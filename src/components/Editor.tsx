@@ -41,7 +41,7 @@ export default function Editor() {
     setRenameStatus({ type: 'idle' })
     setFetchSteps(null)
     setTab('metadata')
-  }, [selectedTrack])
+  }, [selectedTrack?.path])
 
   if (!selectedTrack) return null
 

@@ -90,9 +90,9 @@ function TrackCard({ track, isSelected, isChecked, onSelect, onCheck }: TrackCar
 }
 
 export default function Library() {
-  const { tracks, selectedTrack, selectedPaths, searchQuery, selectTrack, toggleSelection, selectAllFiltered, clearSelection } = useLibraryStore()
+  const { editorTracks, selectedTrack, selectedPaths, searchQuery, selectTrack, toggleSelection, selectAllFiltered, clearSelection } = useLibraryStore()
 
-  const filtered = tracks.filter((t) => {
+  const filtered = editorTracks.filter((t) => {
     if (!searchQuery) return true
     const q = searchQuery.toLowerCase()
     return (
@@ -105,7 +105,7 @@ export default function Library() {
   const filteredPaths = filtered.map((t) => t.path)
   const allChecked = filteredPaths.length > 0 && filteredPaths.every((p) => selectedPaths.includes(p))
 
-  if (tracks.length === 0) {
+  if (editorTracks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-600">
         <Music className="w-16 h-16 opacity-30" />

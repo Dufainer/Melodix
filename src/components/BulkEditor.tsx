@@ -110,10 +110,10 @@ function ResultList({ results }: { results: FileOpResult[] }) {
 
 export default function BulkEditor() {
   const {
-    tracks, selectedPaths, clearSelection, updateTrack, renameTrackPath,
+    editorTracks, selectedPaths, clearSelection, updateTrack, renameTrackPath,
     filePattern, folderPattern,
   } = useLibraryStore()
-  const selectedTracks = tracks.filter((t) => selectedPaths.includes(t.path))
+  const selectedTracks = editorTracks.filter((t) => selectedPaths.includes(t.path))
 
   const [tab, setTab] = useState<Tab>('metadata')
 
