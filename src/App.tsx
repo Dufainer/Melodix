@@ -15,6 +15,7 @@ import NowPlaying from './components/NowPlaying'
 import QueuePanel from './components/QueuePanel'
 import GlobalSearch from './components/GlobalSearch'
 import { useLibraryStore } from './store'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { Track } from './types'
 
 interface RawTrack {
@@ -41,6 +42,7 @@ function rawToTrack(r: RawTrack): Track {
 
 function AppContent() {
   const { musicFolder, tracks, setTracks, setScanning } = useLibraryStore()
+  useKeyboardShortcuts()
 
   // On startup: load disk cache instantly, then rescan in background to pick up changes
   useEffect(() => {

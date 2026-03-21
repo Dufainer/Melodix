@@ -45,7 +45,7 @@ export default function GlobalSearch() {
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-lg bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in"
+        className="w-full max-w-lg bg-surface border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in"
         onClick={e => e.stopPropagation()}
       >
         {/* Input */}

@@ -443,7 +443,7 @@ export default function StatsPage() {
                       )`
                     }}
                   />
-                  <div className="absolute inset-4 rounded-full bg-[#0d1117] flex items-center justify-center">
+                  <div className="absolute inset-4 rounded-full bg-[#0a0a0f] flex items-center justify-center">
                     <div className="text-center">
                       <p className="text-lg font-bold text-white">{top3Pct}%</p>
                       <p className="text-[9px] text-zinc-500">Top 3 share</p>

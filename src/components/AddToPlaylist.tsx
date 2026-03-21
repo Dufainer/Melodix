@@ -55,7 +55,7 @@ export default function AddToPlaylist({ trackPath, variant = 'icon' }: Props) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpen(false) }} />
-          <div className="absolute right-0 bottom-full mb-2 z-50 w-52 bg-[#1a1f2e] border border-white/10 rounded-xl shadow-2xl py-1 overflow-hidden">
+          <div className="absolute right-0 bottom-full mb-2 z-50 w-52 bg-surface border border-white/10 rounded-xl shadow-2xl py-1 overflow-hidden">
             <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest px-3 py-1.5">
               Add to playlist
             </p>

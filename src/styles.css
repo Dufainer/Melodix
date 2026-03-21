@@ -10,11 +10,11 @@
 
 /* ── Design tokens ─────────────────────────────────────────────── */
 @theme {
-  --color-bg:      #0d1117;
-  --color-surface: #161b22;
+  --color-bg:      #0a0a0f;
+  --color-surface: #111118;
   --color-card:    rgba(255, 255, 255, 0.05);
   --color-border:  rgba(255, 255, 255, 0.08);
-  --color-accent:  #1a6fff;
+  --color-accent:  #7c5cfc;
 
   --font-sans: "Inter", "system-ui", sans-serif;
 }
@@ -127,7 +127,7 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2278ff;
+  background-color: #6b4de0;
 }
 
 .btn-primary:active:not(:disabled) {
