@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import {
-  Play, Pause, Music2, Search, RefreshCw, Shuffle,
-  LayoutGrid, List, ChevronLeft, Disc3, Mic2, ListPlus,
+  Play, Pause, Music2, Search, RefreshCw, Shuffle, Check,
+  LayoutGrid, List, ChevronLeft, Disc3, Mic2, ListPlus, ArrowUpDown, ChevronUp, ChevronDown,
 } from 'lucide-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useLibraryStore } from '../store'
@@ -13,6 +13,8 @@ import LazyCover from '../components/LazyCover'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Tab = 'songs' | 'albums' | 'artists'
+type SortKey = 'title' | 'artist' | 'album' | 'duration'
+type SortDir = 'asc' | 'desc'
 
 interface Album {
   name: string
@@ -63,6 +65,7 @@ function SongRow({
   onPlay: () => void
 }) {
   const addToQueue = useLibraryStore(s => s.addToQueue)
+  const inQueue = useLibraryStore(s => s.playerQueue.some(t => t.path === track.path))
   return (
     <div
       onClick={onPlay}
@@ -104,10 +107,11 @@ function SongRow({
 
       <button
         onClick={(e) => { e.stopPropagation(); addToQueue(track) }}
-        title="Add to queue"
-        className="shrink-0 text-zinc-600 hover:text-zinc-300 transition-colors opacity-0 group-hover:opacity-100 p-1"
+        disabled={inQueue}
+        title={inQueue ? 'Already in queue' : 'Add to queue'}
+        className={`shrink-0 transition-colors opacity-0 group-hover:opacity-100 p-1 ${inQueue ? 'text-accent cursor-default' : 'text-zinc-600 hover:text-zinc-300'}`}
       >
-        <ListPlus className="w-4 h-4" />
+        {inQueue ? <Check className="w-4 h-4" /> : <ListPlus className="w-4 h-4" />}
       </button>
       <AddToPlaylist trackPath={track.path} />
     </div>
@@ -348,6 +352,8 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [drillAlbum, setDrillAlbum] = useState<string | null>(null)
   const [drillArtist, setDrillArtist] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<SortKey>('title')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   // ── Scan ──────────────────────────────────────────────────────────────────
 
@@ -378,6 +384,24 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
       t.album.toLowerCase().includes(q)
     )
   }, [tracks, search])
+
+  // ── Sorting ───────────────────────────────────────────────────────────────
+
+  function toggleSort(key: SortKey) {
+    if (sortBy === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortBy(key); setSortDir('asc') }
+  }
+
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      let cmp = 0
+      if (sortBy === 'title')    cmp = (a.title || '').localeCompare(b.title || '')
+      if (sortBy === 'artist')   cmp = (a.artist || '').localeCompare(b.artist || '')
+      if (sortBy === 'album')    cmp = (a.album || '').localeCompare(b.album || '')
+      if (sortBy === 'duration') cmp = a.duration - b.duration
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [filtered, sortBy, sortDir])
 
   // ── Grouping ──────────────────────────────────────────────────────────────
 
@@ -540,6 +564,27 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
               />
             </div>
 
+            {/* Sort controls (only for songs) */}
+            {tab === 'songs' && !inDrill && (
+              <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5">
+                {(['title', 'artist', 'album', 'duration'] as SortKey[]).map(key => {
+                  const active = sortBy === key
+                  const Icon = active ? (sortDir === 'asc' ? ChevronUp : ChevronDown) : ArrowUpDown
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => toggleSort(key)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-colors capitalize ${
+                        active ? 'bg-white/15 text-zinc-200' : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {key === 'duration' ? <Icon className="w-3 h-3" /> : <>{key.charAt(0).toUpperCase() + key.slice(1)} <Icon className="w-3 h-3" /></>}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
             {/* View toggle (only for albums) */}
             {tab === 'albums' && (
               <div className="flex bg-white/5 rounded-lg p-0.5 gap-0.5">
@@ -634,10 +679,10 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
 
         {/* Songs tab — virtualized */}
         {!inDrill && tab === 'songs' && (
-          filtered.length === 0
+          sorted.length === 0
             ? <Empty message={isScanning ? 'Scanning…' : 'No songs found'} />
             : <VirtualSongList
-                tracks={filtered}
+                tracks={sorted}
                 playerTrack={playerTrack}
                 isPlaying={isPlaying}
                 onPlay={handlePlayTrack}

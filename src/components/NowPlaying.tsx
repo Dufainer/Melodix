@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import {
   X, Play, Pause, SkipBack, SkipForward,
-  Shuffle, Repeat, Repeat1, Heart, Music2, Volume2, VolumeX, Mic2, ListPlus,
+  Shuffle, Repeat, Repeat1, Heart, Music2, Volume2, VolumeX, Mic2, ListPlus, Check,
 } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import AddToPlaylist from './AddToPlaylist'
@@ -23,8 +23,9 @@ export default function NowPlaying() {
     playNext, playPrev,
     repeatMode, shuffleOn, setRepeatMode, toggleShuffle,
     position, duration, setPosition, markSeeked,
-    likedPaths, toggleLike, addToQueue,
+    likedPaths, toggleLike, addToQueue, playerQueue,
   } = useLibraryStore()
+  const inQueue = !!playerTrack && playerQueue.some(t => t.path === playerTrack.path)
 
   const [cover, setCover] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('controls')
@@ -137,9 +138,10 @@ export default function NowPlaying() {
             </div>
             {/* Actions */}
             <div className="flex items-center gap-0.5 shrink-0 mt-0.5">
-              <button onClick={() => addToQueue(playerTrack)} title="Add to queue"
-                className="p-2 rounded-xl text-zinc-600 hover:text-zinc-300 transition-all">
-                <ListPlus className="w-5 h-5" />
+              <button onClick={() => addToQueue(playerTrack)} disabled={inQueue}
+                title={inQueue ? 'Already in queue' : 'Add to queue'}
+                className={`p-2 rounded-xl transition-all ${inQueue ? 'text-accent cursor-default' : 'text-zinc-600 hover:text-zinc-300'}`}>
+                {inQueue ? <Check className="w-5 h-5" /> : <ListPlus className="w-5 h-5" />}
               </button>
               <AddToPlaylist trackPath={playerTrack.path} variant="menu-item" />
               <button onClick={() => toggleLike(playerTrack.path)}

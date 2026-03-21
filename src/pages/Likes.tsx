@@ -1,4 +1,4 @@
-import { Heart, ListPlus } from 'lucide-react'
+import { Heart, ListPlus, Check } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import CoverArt from '../components/CoverArt'
 import { Track } from '../types'
@@ -11,6 +11,7 @@ function formatDuration(seconds: number): string {
 
 function LikedRow({ track, onPlay, onUnlike }: { track: Track; onPlay: () => void; onUnlike: () => void }) {
   const addToQueue = useLibraryStore(s => s.addToQueue)
+  const inQueue = useLibraryStore(s => s.playerQueue.some(t => t.path === track.path))
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-white/5 group transition-colors">
       <div className="cursor-pointer flex items-center gap-3 flex-1 min-w-0" onClick={onPlay}>
@@ -30,10 +31,11 @@ function LikedRow({ track, onPlay, onUnlike }: { track: Track; onPlay: () => voi
       )}
       <button
         onClick={(e) => { e.stopPropagation(); addToQueue(track) }}
-        title="Add to queue"
-        className="shrink-0 p-1.5 rounded-lg text-zinc-600 hover:text-zinc-300 opacity-0 group-hover:opacity-100 transition-all"
+        disabled={inQueue}
+        title={inQueue ? 'Already in queue' : 'Add to queue'}
+        className={`shrink-0 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${inQueue ? 'text-accent cursor-default' : 'text-zinc-600 hover:text-zinc-300'}`}
       >
-        <ListPlus className="w-4 h-4" />
+        {inQueue ? <Check className="w-4 h-4" /> : <ListPlus className="w-4 h-4" />}
       </button>
       <button
         onClick={onUnlike}

@@ -13,6 +13,7 @@ import GenrePage from './pages/GenrePage'
 import Player from './components/Player'
 import NowPlaying from './components/NowPlaying'
 import QueuePanel from './components/QueuePanel'
+import GlobalSearch from './components/GlobalSearch'
 import { useLibraryStore } from './store'
 import { Track } from './types'
 
@@ -90,6 +91,7 @@ function AppContent() {
       <Player />
       <NowPlaying />
       <QueuePanel />
+      <GlobalSearch />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Play, Shuffle, Trash2, Music2, GripVertical, MoreVertical } from 'lucide-react'
+import { Play, Shuffle, Trash2, Music2, GripVertical } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import CoverArt from '../components/CoverArt'
 
@@ -20,6 +20,7 @@ export default function PlaylistPage() {
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState(playlist?.name ?? '')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmRemovePath, setConfirmRemovePath] = useState<string | null>(null)
 
   if (!playlist) {
     return (
@@ -173,13 +174,30 @@ export default function PlaylistPage() {
                 {track.duration > 0 && (
                   <span className="text-xs text-zinc-600 tabular-nums shrink-0">{formatDuration(track.duration)}</span>
                 )}
-                <button
-                  onClick={(e) => { e.stopPropagation(); removeFromPlaylist(playlist.id, track.path) }}
-                  className="shrink-0 p-1.5 rounded-lg text-zinc-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                  title="Remove from playlist"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
+                {confirmRemovePath === track.path ? (
+                  <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                    <button
+                      onClick={() => { removeFromPlaylist(playlist.id, track.path); setConfirmRemovePath(null) }}
+                      className="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+                    >
+                      Remove
+                    </button>
+                    <button
+                      onClick={() => setConfirmRemovePath(null)}
+                      className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/5 text-zinc-400 hover:bg-white/10 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setConfirmRemovePath(track.path) }}
+                    className="shrink-0 p-1.5 rounded-lg text-zinc-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                    title="Remove from playlist"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             )
           })

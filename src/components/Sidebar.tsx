@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Library, Settings, Music2, Disc3, ListMusic, Heart, Mic2, Plus, ListVideo, Pencil, Trash2, BarChart2, Tag } from 'lucide-react'
+import { Library, Settings, Music2, Disc3, ListMusic, Heart, Mic2, Plus, ListVideo, Pencil, Trash2, BarChart2, Tag, Search } from 'lucide-react'
 import { useLibraryStore } from '../store'
 
 const NAV_ITEMS = [
@@ -65,8 +65,18 @@ export default function Sidebar() {
         <span className="text-lg font-semibold text-white tracking-tight">Melodix</span>
       </div>
 
+      {/* Global search shortcut */}
+      <button
+        onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))}
+        className="mx-3 mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/8 text-zinc-500 hover:text-zinc-300 transition-all text-xs"
+      >
+        <Search className="w-3.5 h-3.5 shrink-0" />
+        <span className="flex-1 text-left">Search library…</span>
+        <kbd className="text-[10px] bg-white/5 border border-white/10 rounded px-1.5 py-0.5 shrink-0">⌃K</kbd>
+      </button>
+
       {/* Main nav */}
-      <nav className="mt-4 flex flex-col gap-1 px-3 shrink-0">
+      <nav className="mt-3 flex flex-col gap-1 px-3 shrink-0">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} end={to === '/'} className={navLinkClass}>
             <Icon className="w-4 h-4 shrink-0" />
@@ -109,7 +119,10 @@ export default function Sidebar() {
           )}
 
           {playlists.map((pl) => (
-            <div key={pl.id} className="group relative">
+            <div
+              key={pl.id}
+              className="group relative"
+            >
               {editingId === pl.id ? (
                 <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/5">
                   <ListVideo className="w-4 h-4 text-zinc-500 shrink-0" />

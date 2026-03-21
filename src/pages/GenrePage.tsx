@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Play, Pause, Shuffle, ChevronLeft, Music2, ListPlus } from 'lucide-react'
+import { Play, Pause, Shuffle, ChevronLeft, Music2, ListPlus, Check } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import LazyCover from '../components/LazyCover'
@@ -41,6 +41,7 @@ function SongRow({ track, isActive, isPlaying, onPlay }: {
   track: Track; isActive: boolean; isPlaying: boolean; onPlay: () => void
 }) {
   const addToQueue = useLibraryStore(s => s.addToQueue)
+  const inQueue = useLibraryStore(s => s.playerQueue.some(t => t.path === track.path))
 
   return (
     <div
@@ -76,10 +77,11 @@ function SongRow({ track, isActive, isPlaying, onPlay }: {
 
       <button
         onClick={(e) => { e.stopPropagation(); addToQueue(track) }}
-        title="Añadir a la cola"
-        className="shrink-0 text-zinc-600 hover:text-zinc-300 transition-colors opacity-0 group-hover:opacity-100 p-1"
+        disabled={inQueue}
+        title={inQueue ? 'Already in queue' : 'Add to queue'}
+        className={`shrink-0 transition-colors opacity-0 group-hover:opacity-100 p-1 ${inQueue ? 'text-accent cursor-default' : 'text-zinc-600 hover:text-zinc-300'}`}
       >
-        <ListPlus className="w-4 h-4" />
+        {inQueue ? <Check className="w-4 h-4" /> : <ListPlus className="w-4 h-4" />}
       </button>
 
       <AddToPlaylist trackPath={track.path} />

@@ -264,9 +264,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
 
   setQueueOpen: (queueOpen) => set({ queueOpen }),
 
-  addToQueue: (track) => set((state) => ({
-    playerQueue: [...state.playerQueue, track],
-  })),
+  addToQueue: (track) => set((state) => {
+    if (state.playerQueue.some(t => t.path === track.path)) return state
+    return { playerQueue: [...state.playerQueue, track] }
+  }),
 
   removeFromQueue: (index) => {
     const next = [...get().playerQueue]
