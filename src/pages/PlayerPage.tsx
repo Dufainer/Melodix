@@ -35,7 +35,7 @@ interface RawTrack {
   path: string; format: string; title?: string; artist?: string; album?: string
   album_artist?: string; genre?: string; year?: number; track_number?: number
   disc_number?: number; duration?: number; cover_art?: string
-  sample_rate?: number; bitrate?: number; file_size?: number
+  sample_rate?: number; bitrate?: number; file_size?: number; file_modified?: number
 }
 
 function rawToTrack(r: RawTrack): Track {
@@ -46,6 +46,7 @@ function rawToTrack(r: RawTrack): Track {
     trackNumber: r.track_number ?? 0, discNumber: r.disc_number ?? 0,
     duration: r.duration ?? 0, coverArt: r.cover_art,
     sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
+    fileModified: r.file_modified,
   }
 }
 
@@ -342,7 +343,7 @@ function VirtualSongList({ tracks, playerTrack, isPlaying, onPlay }: {
 
 export default function PlayerPage({ defaultTab = 'songs', standalone = false }: { defaultTab?: Tab; standalone?: boolean }) {
   const {
-    musicFolder, tracks, isScanning, setTracks, setScanning,
+    musicFolders, tracks, isScanning, setTracks, setScanning,
     playerTrack, isPlaying, playTrack, setIsPlaying,
     shuffleOn, toggleShuffle,
   } = useLibraryStore()
@@ -358,14 +359,16 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
   // ── Scan ──────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (musicFolder && tracks.length === 0) scanFolder(musicFolder)
+    if (musicFolders.length > 0 && tracks.length === 0) scanAllFolders(musicFolders)
   }, [])
 
-  async function scanFolder(folder: string) {
+  async function scanAllFolders(folders: string[]) {
     setScanning(true)
     try {
-      const raw: RawTrack[] = await invoke('scan_folder', { path: folder, skipCover: true })
-      setTracks(raw.map(rawToTrack))
+      const results = await Promise.all(
+        folders.map(path => invoke<RawTrack[]>('scan_folder', { path, skipCover: true }))
+      )
+      setTracks(results.flat().map(rawToTrack))
     } catch (err) {
       console.error('Scan failed:', err)
     } finally {
@@ -480,7 +483,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
 
   // ── No folder state ───────────────────────────────────────────────────────
 
-  if (!musicFolder) {
+  if (musicFolders.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
         <Music2 className="w-20 h-20 text-zinc-700" />
@@ -505,7 +508,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
             {standalone ? (defaultTab === 'albums' ? 'Albums' : defaultTab === 'artists' ? 'Artists' : 'Songs') : 'Library'}
           </h1>
           <button
-            onClick={() => musicFolder && scanFolder(musicFolder)}
+            onClick={() => musicFolders.length > 0 && scanAllFolders(musicFolders)}
             disabled={isScanning}
             className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-zinc-400 hover:text-zinc-200"
           >

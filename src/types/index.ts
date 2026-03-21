@@ -22,6 +22,7 @@ export interface Track {
   composer?: string
   replayGainTrack?: number
   replayGainAlbum?: number
+  fileModified?: number
 }
 
 export type FetchStepStatus = 'pending' | 'running' | 'success' | 'error' | 'skipped'

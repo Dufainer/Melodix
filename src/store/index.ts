@@ -29,7 +29,7 @@ interface LibraryState {
   activeFormat: string | null
   filePattern: string
   folderPattern: string
-  musicFolder: string | null
+  musicFolders: string[]
   likedPaths: string[]
   playlists: Playlist[]
   recentlyPlayed: string[]
@@ -61,7 +61,8 @@ interface LibraryState {
   clearSelection: () => void
   setFilePattern: (pattern: string) => void
   setFolderPattern: (pattern: string) => void
-  setMusicFolder: (path: string) => void
+  addMusicFolder: (path: string) => void
+  removeMusicFolder: (path: string) => void
   toggleLike: (path: string) => void
   recordPlay: (path: string, duration: number) => void
   createPlaylist: (name: string) => string
@@ -107,7 +108,13 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   activeFormat: null,
   filePattern:   localStorage.getItem('filePattern')   ?? DEFAULT_FILE_PATTERN,
   folderPattern: localStorage.getItem('folderPattern') ?? DEFAULT_FOLDER_PATTERN,
-  musicFolder:   localStorage.getItem('musicFolder')   ?? null,
+  musicFolders: (() => {
+    const stored = localStorage.getItem('musicFolders')
+    if (stored) return JSON.parse(stored) as string[]
+    // migrate from old single-folder key
+    const old = localStorage.getItem('musicFolder')
+    return old ? [old] : []
+  })(),
 
   playerTrack: null,
   isPlaying: false,
@@ -190,14 +197,18 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     localStorage.setItem('folderPattern', pattern)
     set({ folderPattern: pattern })
   },
-  setMusicFolder: (path) => {
-    if (path) {
-      localStorage.setItem('musicFolder', path)
-      set({ musicFolder: path })
-    } else {
-      localStorage.removeItem('musicFolder')
-      set({ musicFolder: null })
-    }
+  addMusicFolder: (path) => {
+    const next = get().musicFolders.includes(path)
+      ? get().musicFolders
+      : [...get().musicFolders, path]
+    localStorage.setItem('musicFolders', JSON.stringify(next))
+    set({ musicFolders: next })
+  },
+
+  removeMusicFolder: (path) => {
+    const next = get().musicFolders.filter(f => f !== path)
+    localStorage.setItem('musicFolders', JSON.stringify(next))
+    set({ musicFolders: next })
   },
 
   playTrack: (track, queue) => {

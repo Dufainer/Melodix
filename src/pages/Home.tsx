@@ -123,6 +123,14 @@ export default function Home() {
     [recentlyPlayed, tracks]
   )
 
+  const recentlyAdded = useMemo(() => {
+    const thirtyDaysAgo = (Date.now() / 1000) - 30 * 24 * 60 * 60
+    return [...tracks]
+      .filter(t => t.fileModified && t.fileModified > thirtyDaysAgo)
+      .sort((a, b) => (b.fileModified ?? 0) - (a.fileModified ?? 0))
+      .slice(0, 20)
+  }, [tracks])
+
   const trackPlayCount = useMemo(() => {
     const map = new Map<string, number>()
     recentlyPlayed.forEach(path => map.set(path, (map.get(path) ?? 0) + 1))
@@ -249,6 +257,42 @@ export default function Home() {
                 <button
                   key={track.path}
                   onClick={() => playTrack(track, recentTracks)}
+                  className="shrink-0 text-left group"
+                  style={{ width: 130 }}
+                >
+                  <div
+                    className="relative rounded-2xl overflow-hidden mb-2 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl"
+                    style={{ width: 130, height: 130 }}
+                  >
+                    <LazyCover path={track.path} coverArt={track.coverArt} iconSize={32} />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-xl scale-0 group-hover:scale-100 transition-transform duration-200">
+                        <Play className="w-4 h-4 text-black ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs font-semibold text-zinc-300 truncate group-hover:text-white transition-colors leading-tight">
+                    {track.title || track.path.split('/').pop()}
+                  </p>
+                  <p className="text-[10px] text-zinc-600 truncate mt-0.5">{track.artist || 'Unknown Artist'}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Recently Added ────────────────────────────────────────── */}
+        {recentlyAdded.length > 0 && (
+          <section className="mt-7 shrink-0">
+            <div className="flex items-center justify-between px-5 mb-3">
+              <h2 className="text-sm font-bold text-zinc-100">Recently Added</h2>
+              <span className="text-[11px] text-zinc-600">{recentlyAdded.length} tracks</span>
+            </div>
+            <div className="flex gap-3.5 overflow-x-auto px-5 pb-3 scrollbar-hide">
+              {recentlyAdded.map((track) => (
+                <button
+                  key={track.path}
+                  onClick={() => playTrack(track, recentlyAdded)}
                   className="shrink-0 text-left group"
                   style={{ width: 130 }}
                 >

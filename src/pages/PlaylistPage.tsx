@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Play, Shuffle, Trash2, Music2, GripVertical } from 'lucide-react'
+import { Play, Shuffle, Trash2, Music2, GripVertical, Download, Upload } from 'lucide-react'
+import { save, open } from '@tauri-apps/plugin-dialog'
+import { writeTextFile, readTextFile } from '@tauri-apps/plugin-fs'
 import { useLibraryStore } from '../store'
 import CoverArt from '../components/CoverArt'
 
@@ -14,7 +16,7 @@ export default function PlaylistPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { playlists, tracks, playTrack, playerTrack, isPlaying, setIsPlaying,
-          deletePlaylist, renamePlaylist, removeFromPlaylist } = useLibraryStore()
+          deletePlaylist, renamePlaylist, removeFromPlaylist, createPlaylist, addToPlaylist } = useLibraryStore()
 
   const playlist = playlists.find((p) => p.id === id)
   const [editingName, setEditingName] = useState(false)
@@ -59,6 +61,40 @@ export default function PlaylistPage() {
     navigate('/player')
   }
 
+  async function handleExport() {
+    if (!playlist) return
+    const lines = ['#EXTM3U']
+    for (const track of playlistTracks) {
+      const duration = Math.round(track.duration ?? 0)
+      const label = [track.artist, track.title].filter(Boolean).join(' - ') || track.path.split('/').pop() || ''
+      lines.push(`#EXTINF:${duration},${label}`)
+      lines.push(track.path)
+    }
+    const filePath = await save({
+      defaultPath: `${playlist.name}.m3u8`,
+      filters: [{ name: 'Playlist', extensions: ['m3u8', 'm3u'] }],
+    })
+    if (filePath) await writeTextFile(filePath, lines.join('\n'))
+  }
+
+  async function handleImport() {
+    const selected = await open({
+      multiple: false,
+      filters: [{ name: 'Playlist', extensions: ['m3u8', 'm3u'] }],
+      title: 'Import playlist',
+    })
+    if (!selected || typeof selected !== 'string') return
+    const content = await readTextFile(selected)
+    const paths = content.split('\n')
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith('#'))
+    if (paths.length === 0) return
+    const fileName = selected.split('/').pop()?.replace(/\.(m3u8?)/i, '') ?? 'Imported'
+    const newId = createPlaylist(fileName)
+    paths.forEach(path => addToPlaylist(newId, path))
+    navigate(`/playlist/${newId}`)
+  }
+
   function commitRename() {
     const trimmed = nameValue.trim()
     if (trimmed && trimmed !== playlist!.name) renamePlaylist(playlist!.id, trimmed)
@@ -96,6 +132,24 @@ export default function PlaylistPage() {
                 <span className="text-zinc-600"> · {playlist.trackPaths.length - playlistTracks.length} unavailable</span>
               )}
             </p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={handleImport}
+              title="Import .m3u8"
+              className="p-2 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all"
+            >
+              <Upload className="w-4 h-4" />
+            </button>
+            {playlistTracks.length > 0 && (
+              <button
+                onClick={handleExport}
+                title="Export as .m3u8"
+                className="p-2 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            )}
           </div>
           {confirmDelete ? (
             <div className="flex items-center gap-2 shrink-0">

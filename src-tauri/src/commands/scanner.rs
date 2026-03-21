@@ -10,6 +10,8 @@ pub struct ScannedTrack {
     pub format: String,
     pub file_name: String,
     pub file_size: u64,
+    /// Unix timestamp (seconds) of the file's last modification time
+    pub file_modified: Option<u64>,
     /// Basic metadata loaded eagerly during scan (may be empty strings on error)
     #[serde(flatten)]
     pub metadata: Option<Metadata>,
@@ -52,9 +54,12 @@ pub fn scan_folder(path: String, skip_cover: Option<bool>) -> Result<Vec<Scanned
             .unwrap_or("")
             .to_owned();
 
-        let file_size = std::fs::metadata(file_path)
-            .map(|m| m.len())
-            .unwrap_or(0);
+        let fs_meta = std::fs::metadata(file_path).ok();
+        let file_size = fs_meta.as_ref().map(|m| m.len()).unwrap_or(0);
+        let file_modified = fs_meta
+            .and_then(|m| m.modified().ok())
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_secs());
 
         // Attempt to read metadata; optionally strip cover art to speed up bulk scans
         let metadata = match formats::handler_for(file_path) {
@@ -75,6 +80,7 @@ pub fn scan_folder(path: String, skip_cover: Option<bool>) -> Result<Vec<Scanned
             format: ext,
             file_name,
             file_size,
+            file_modified,
             metadata,
         });
     }

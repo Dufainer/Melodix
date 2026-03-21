@@ -24,7 +24,7 @@ interface RawTrack {
   disc_number?: number; duration?: number; cover_art?: string; bit_depth?: number
   sample_rate?: number; bitrate?: number; file_size?: number
   replay_gain_track?: number; replay_gain_album?: number
-  lyrics?: string; comment?: string; composer?: string
+  lyrics?: string; comment?: string; composer?: string; file_modified?: number
 }
 
 function rawToTrack(r: RawTrack): Track {
@@ -37,16 +37,17 @@ function rawToTrack(r: RawTrack): Track {
     sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
     replayGainTrack: r.replay_gain_track, replayGainAlbum: r.replay_gain_album,
     lyrics: r.lyrics, comment: r.comment, composer: r.composer,
+    fileModified: r.file_modified,
   }
 }
 
 function AppContent() {
-  const { musicFolder, tracks, setTracks, setScanning } = useLibraryStore()
+  const { musicFolders, tracks, setTracks, setScanning } = useLibraryStore()
   useKeyboardShortcuts()
 
   // On startup: load disk cache instantly, then rescan in background to pick up changes
   useEffect(() => {
-    if (!musicFolder) return
+    if (musicFolders.length === 0) return
 
     async function init() {
       // 1. Load cache immediately so the UI is usable right away
@@ -55,10 +56,13 @@ function AppContent() {
         if (cached && cached.length > 0) setTracks(cached.map(rawToTrack))
       } catch { /* no cache yet */ }
 
-      // 2. Rescan in background to pick up new/removed files
+      // 2. Rescan all folders in background to pick up new/removed files
       setScanning(true)
       try {
-        const raw = await invoke<RawTrack[]>('scan_folder', { path: musicFolder, skipCover: true })
+        const results = await Promise.all(
+          musicFolders.map(path => invoke<RawTrack[]>('scan_folder', { path, skipCover: true }))
+        )
+        const raw = results.flat()
         setTracks(raw.map(rawToTrack))
         invoke('save_library_cache', { tracks: raw }).catch(() => {})
       } catch (err) {
