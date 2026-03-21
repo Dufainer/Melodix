@@ -294,7 +294,7 @@ export default function Settings() {
         <div className="glass-card flex items-start gap-3">
           <Info className="w-4 h-4 text-accent mt-0.5 shrink-0" />
           <div className="text-sm text-zinc-400 space-y-1">
-            <p>Melodix v0.1.0</p>
+            <p>Melodix v0.2.0</p>
             <p className="text-zinc-600 text-xs">
               Built with Tauri v2 + React 19 + TypeScript + TailwindCSS v4
             </p>
