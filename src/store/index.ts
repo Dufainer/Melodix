@@ -90,8 +90,10 @@ interface LibraryState {
   // Playback settings
   crossfadeDuration: number        // seconds, 0 = disabled
   sleepTimerEndsAt: number | null  // ms timestamp, null = inactive
+  replayGainMode: 'off' | 'track' | 'album'
   setCrossfadeDuration: (seconds: number) => void
   setSleepTimer: (minutes: number | null) => void
+  setReplayGainMode: (mode: 'off' | 'track' | 'album') => void
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
@@ -240,6 +242,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
 
   crossfadeDuration: Number(localStorage.getItem('crossfadeDuration') ?? 0),
   sleepTimerEndsAt: null,
+  replayGainMode: (localStorage.getItem('replayGainMode') as 'off' | 'track' | 'album') ?? 'track',
 
   setCrossfadeDuration: (seconds) => {
     localStorage.setItem('crossfadeDuration', String(seconds))
@@ -248,6 +251,11 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
 
   setSleepTimer: (minutes) => {
     set({ sleepTimerEndsAt: minutes === null ? null : Date.now() + minutes * 60 * 1000 })
+  },
+
+  setReplayGainMode: (mode) => {
+    localStorage.setItem('replayGainMode', mode)
+    set({ replayGainMode: mode })
   },
 
   setQueueOpen: (queueOpen) => set({ queueOpen }),

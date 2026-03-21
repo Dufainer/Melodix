@@ -23,6 +23,8 @@ pub struct Metadata {
     pub lyrics: Option<String>,
     pub comment: Option<String>,
     pub composer: Option<String>,
+    pub replay_gain_track: Option<f32>,
+    pub replay_gain_album: Option<f32>,
 }
 
 #[tauri::command]

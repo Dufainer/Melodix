@@ -60,6 +60,15 @@ impl AudioFormat for Flac {
             0
         };
 
+        macro_rules! get_rg {
+            ($field:expr) => {
+                vorbis
+                    .and_then(|v| v.get($field))
+                    .and_then(|vals| vals.first())
+                    .and_then(|s| s.split_whitespace().next()?.parse::<f32>().ok())
+            };
+        }
+
         let lyrics_val = vorbis
             .and_then(|v| v.get("LYRICS"))
             .and_then(|vals| vals.first())
@@ -102,6 +111,8 @@ impl AudioFormat for Flac {
             lyrics: lyrics_val,
             comment: comment_val,
             composer: composer_val,
+            replay_gain_track: get_rg!("REPLAYGAIN_TRACK_GAIN"),
+            replay_gain_album: get_rg!("REPLAYGAIN_ALBUM_GAIN"),
         })
     }
 

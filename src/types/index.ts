@@ -20,6 +20,8 @@ export interface Track {
   lyrics?: string
   comment?: string
   composer?: string
+  replayGainTrack?: number
+  replayGainAlbum?: number
 }
 
 export type FetchStepStatus = 'pending' | 'running' | 'success' | 'error' | 'skipped'

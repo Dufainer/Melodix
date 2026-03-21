@@ -21,6 +21,7 @@ interface RawTrack {
   album_artist?: string; genre?: string; year?: number; track_number?: number
   disc_number?: number; duration?: number; cover_art?: string; bit_depth?: number
   sample_rate?: number; bitrate?: number; file_size?: number
+  replay_gain_track?: number; replay_gain_album?: number
 }
 
 function rawToTrack(r: RawTrack): Track {
@@ -31,21 +32,38 @@ function rawToTrack(r: RawTrack): Track {
     trackNumber: r.track_number ?? 0, discNumber: r.disc_number ?? 0,
     duration: r.duration ?? 0, coverArt: r.cover_art,
     sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
+    replayGainTrack: r.replay_gain_track, replayGainAlbum: r.replay_gain_album,
   }
 }
 
 function AppContent() {
   const { musicFolder, tracks, setTracks, setScanning } = useLibraryStore()
 
-  // Auto-scan music folder on startup
+  // On startup: load disk cache instantly, then rescan in background to pick up changes
   useEffect(() => {
-    if (musicFolder && tracks.length === 0) {
+    if (!musicFolder) return
+
+    async function init() {
+      // 1. Load cache immediately so the UI is usable right away
+      try {
+        const cached = await invoke<RawTrack[] | null>('load_library_cache')
+        if (cached && cached.length > 0) setTracks(cached.map(rawToTrack))
+      } catch { /* no cache yet */ }
+
+      // 2. Rescan in background to pick up new/removed files
       setScanning(true)
-      invoke<RawTrack[]>('scan_folder', { path: musicFolder, skipCover: true })
-        .then((raw) => setTracks(raw.map(rawToTrack)))
-        .catch(console.error)
-        .finally(() => setScanning(false))
+      try {
+        const raw = await invoke<RawTrack[]>('scan_folder', { path: musicFolder, skipCover: true })
+        setTracks(raw.map(rawToTrack))
+        invoke('save_library_cache', { tracks: raw }).catch(() => {})
+      } catch (err) {
+        console.error('Startup scan failed:', err)
+      } finally {
+        setScanning(false)
+      }
     }
+
+    if (tracks.length === 0) init()
   }, [])
 
   return (

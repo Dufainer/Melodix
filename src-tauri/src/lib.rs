@@ -15,6 +15,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
+            commands::cache::save_library_cache,
+            commands::cache::load_library_cache,
             commands::scanner::scan_folder,
             commands::metadata::read_metadata,
             commands::metadata::write_metadata,

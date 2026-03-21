@@ -40,12 +40,24 @@ export default function Player() {
   const accumulatedRef = useRef<number>(0)
   const volumeRef = useRef(volume)
   const mutedRef = useRef(muted)
+  const gainRef = useRef(1)
   const fadeInIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const crossfadeActiveRef = useRef(false)
 
   // Keep refs current so interval callbacks always see latest values
   useEffect(() => { volumeRef.current = volume }, [volume])
   useEffect(() => { mutedRef.current = muted }, [muted])
+
+  // Recompute ReplayGain multiplier when track changes
+  useEffect(() => {
+    if (!playerTrack) { gainRef.current = 1; return }
+    const mode = useLibraryStore.getState().replayGainMode
+    if (mode === 'off') { gainRef.current = 1; return }
+    const gainDb = mode === 'album'
+      ? (playerTrack.replayGainAlbum ?? playerTrack.replayGainTrack)
+      : playerTrack.replayGainTrack
+    gainRef.current = gainDb != null ? Math.pow(10, gainDb / 20) : 1
+  }, [playerTrack?.path])
 
   function getListened(): number {
     if (listenStartRef.current !== null)
@@ -103,7 +115,7 @@ export default function Player() {
           if (remaining > 0 && remaining <= xfade) {
             const ratio = remaining / xfade
             const baseVol = mutedRef.current ? 0 : volumeRef.current
-            invoke('player_set_volume', { volume: baseVol * ratio }).catch(() => {})
+            invoke('player_set_volume', { volume: baseVol * ratio * gainRef.current }).catch(() => {})
           }
         }
 
@@ -184,7 +196,7 @@ export default function Player() {
             elapsed += 0.1
             const ratio = Math.min(elapsed / xfade, 1)
             const baseVol = mutedRef.current ? 0 : volumeRef.current
-            invoke('player_set_volume', { volume: baseVol * ratio }).catch(() => {})
+            invoke('player_set_volume', { volume: baseVol * ratio * gainRef.current }).catch(() => {})
             if (ratio >= 1) {
               crossfadeActiveRef.current = false
               if (fadeInIntervalRef.current) clearInterval(fadeInIntervalRef.current)
@@ -193,7 +205,7 @@ export default function Player() {
           }, 100)
         } else {
           const v = mutedRef.current ? 0 : volumeRef.current
-          await invoke('player_set_volume', { volume: v })
+          await invoke('player_set_volume', { volume: v * gainRef.current })
         }
       })
       .then(() => startPoll())
@@ -232,7 +244,7 @@ export default function Player() {
   useEffect(() => {
     if (crossfadeActiveRef.current) return
     const v = muted ? 0 : volume
-    invoke('player_set_volume', { volume: v }).catch(() => {})
+    invoke('player_set_volume', { volume: v * gainRef.current }).catch(() => {})
   }, [volume, muted])
 
   // Cleanup on unmount

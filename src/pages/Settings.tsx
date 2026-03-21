@@ -11,6 +11,7 @@ interface RawTrack {
   album_artist?: string; genre?: string; year?: number; track_number?: number
   disc_number?: number; duration?: number; cover_art?: string; bit_depth?: number
   sample_rate?: number; bitrate?: number; file_size?: number
+  replay_gain_track?: number; replay_gain_album?: number
 }
 
 function rawToTrack(r: RawTrack): Track {
@@ -21,6 +22,7 @@ function rawToTrack(r: RawTrack): Track {
     trackNumber: r.track_number ?? 0, discNumber: r.disc_number ?? 0,
     duration: r.duration ?? 0, coverArt: r.cover_art,
     sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
+    replayGainTrack: r.replay_gain_track, replayGainAlbum: r.replay_gain_album,
   }
 }
 
@@ -78,6 +80,7 @@ export default function Settings() {
     musicFolder, setMusicFolder, setTracks, isScanning, setScanning,
     crossfadeDuration, setCrossfadeDuration,
     sleepTimerEndsAt, setSleepTimer,
+    replayGainMode, setReplayGainMode,
   } = useLibraryStore()
 
   async function scanFolder(path: string) {
@@ -85,6 +88,7 @@ export default function Settings() {
     try {
       const raw = await invoke<RawTrack[]>('scan_folder', { path, skipCover: true })
       setTracks(raw.map(rawToTrack))
+      invoke('save_library_cache', { tracks: raw }).catch(() => {})
     } catch (err) {
       console.error('Scan failed:', err)
     } finally {
@@ -186,6 +190,29 @@ export default function Settings() {
             />
             <p className="text-xs text-zinc-600 mt-1.5">
               Fade suave al cambiar de canción (0 = desactivado)
+            </p>
+          </div>
+
+          {/* ReplayGain */}
+          <div>
+            <label className="text-xs font-medium text-zinc-400 block mb-2">ReplayGain</label>
+            <div className="flex gap-2">
+              {(['off', 'track', 'album'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setReplayGainMode(mode)}
+                  className={`px-3 py-1.5 text-xs rounded-lg border transition-all capitalize ${
+                    replayGainMode === mode
+                      ? 'bg-accent/20 border-accent/50 text-accent'
+                      : 'bg-white/5 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20'
+                  }`}
+                >
+                  {mode === 'off' ? 'Off' : mode === 'track' ? 'Track' : 'Album'}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-zinc-600 mt-1.5">
+              Normaliza el volumen usando los tags ReplayGain embebidos en cada archivo
             </p>
           </div>
 
