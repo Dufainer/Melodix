@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Heart, ListMusic, Moon } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Heart, ListMusic, Moon, SlidersHorizontal, Wand2 } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import CoverArt from './CoverArt'
 import AddToPlaylist from './AddToPlaylist'
@@ -31,6 +31,9 @@ export default function Player() {
     queueOpen, setQueueOpen, playerQueue,
     sleepTimerEndsAt, setSleepTimer,
     nowPlayingOpen,
+    eqPanelOpen, setEqPanelOpen,
+    effectsPanelOpen, setEffectsPanelOpen,
+    effectSpeed, effectReverbWet,
   } = useLibraryStore()
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
@@ -366,6 +369,23 @@ export default function Player() {
             <Moon className="w-4 h-4" />
           </button>
         )}
+        <button
+          onClick={() => setEffectsPanelOpen(!effectsPanelOpen)}
+          title="Audio effects"
+          className={`shrink-0 transition-colors relative ${effectsPanelOpen ? 'text-accent' : (effectSpeed !== 1 || effectReverbWet > 0) ? 'text-accent/70 hover:text-accent' : 'text-zinc-500 hover:text-zinc-200'}`}
+        >
+          <Wand2 className="w-4 h-4" />
+          {(effectSpeed !== 1 || effectReverbWet > 0) && (
+            <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-accent" />
+          )}
+        </button>
+        <button
+          onClick={() => setEqPanelOpen(!eqPanelOpen)}
+          title="Equalizer"
+          className={`shrink-0 transition-colors ${eqPanelOpen ? 'text-accent' : 'text-zinc-500 hover:text-zinc-200'}`}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </button>
         <button
           onClick={() => setQueueOpen(!queueOpen)}
           title="Playback queue"

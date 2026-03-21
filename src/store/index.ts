@@ -96,6 +96,28 @@ interface LibraryState {
   setCrossfadeDuration: (seconds: number) => void
   setSleepTimer: (minutes: number | null) => void
   setReplayGainMode: (mode: 'off' | 'track' | 'album') => void
+
+  // Equalizer
+  eqEnabled: boolean
+  eqBands: number[]      // 10 bands, gain in dB
+  eqPreset: string
+  eqPanelOpen: boolean
+  setEqEnabled: (v: boolean) => void
+  setEqBand: (index: number, gain: number) => void
+  setEqPreset: (name: string, bands: number[]) => void
+  setEqPanelOpen: (v: boolean) => void
+
+  // Effects
+  effectSpeed: number
+  effectReverbRoom: number
+  effectReverbDamp: number
+  effectReverbWet: number
+  effect8d: boolean
+  effect8dSpeed: number
+  effectPreset: string
+  effectsPanelOpen: boolean
+  setEffect: (speed: number, room: number, damp: number, wet: number, e8d: boolean, s8d: number, preset: string) => void
+  setEffectsPanelOpen: (v: boolean) => void
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
@@ -260,6 +282,20 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   sleepTimerEndsAt: null,
   replayGainMode: (localStorage.getItem('replayGainMode') as 'off' | 'track' | 'album') ?? 'track',
 
+  eqEnabled: localStorage.getItem('eqEnabled') === 'true',
+  eqBands: JSON.parse(localStorage.getItem('eqBands') ?? '[0,0,0,0,0,0,0,0,0,0]'),
+  eqPreset: localStorage.getItem('eqPreset') ?? 'flat',
+  eqPanelOpen: false,
+
+  effectSpeed:      Number(localStorage.getItem('effectSpeed') ?? 1),
+  effectReverbRoom: Number(localStorage.getItem('effectReverbRoom') ?? 0),
+  effectReverbDamp: Number(localStorage.getItem('effectReverbDamp') ?? 0.5),
+  effectReverbWet:  Number(localStorage.getItem('effectReverbWet') ?? 0),
+  effect8d:         localStorage.getItem('effect8d') === 'true',
+  effect8dSpeed:    Number(localStorage.getItem('effect8dSpeed') ?? 0.2),
+  effectPreset: localStorage.getItem('effectPreset') ?? 'normal',
+  effectsPanelOpen: false,
+
   setCrossfadeDuration: (seconds) => {
     localStorage.setItem('crossfadeDuration', String(seconds))
     set({ crossfadeDuration: seconds })
@@ -273,6 +309,35 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     localStorage.setItem('replayGainMode', mode)
     set({ replayGainMode: mode })
   },
+
+  setEqEnabled: (v) => {
+    localStorage.setItem('eqEnabled', String(v))
+    set({ eqEnabled: v })
+  },
+  setEqBand: (index, gain) => {
+    const bands = [...get().eqBands]
+    bands[index] = gain
+    localStorage.setItem('eqBands', JSON.stringify(bands))
+    set({ eqBands: bands, eqPreset: 'custom' })
+  },
+  setEqPreset: (name, bands) => {
+    localStorage.setItem('eqPreset', name)
+    localStorage.setItem('eqBands', JSON.stringify(bands))
+    set({ eqPreset: name, eqBands: bands })
+  },
+  setEqPanelOpen: (v) => set({ eqPanelOpen: v }),
+
+  setEffect: (speed, room, damp, wet, e8d, s8d, preset) => {
+    localStorage.setItem('effectSpeed', String(speed))
+    localStorage.setItem('effectReverbRoom', String(room))
+    localStorage.setItem('effectReverbDamp', String(damp))
+    localStorage.setItem('effectReverbWet', String(wet))
+    localStorage.setItem('effect8d', String(e8d))
+    localStorage.setItem('effect8dSpeed', String(s8d))
+    localStorage.setItem('effectPreset', preset)
+    set({ effectSpeed: speed, effectReverbRoom: room, effectReverbDamp: damp, effectReverbWet: wet, effect8d: e8d, effect8dSpeed: s8d, effectPreset: preset })
+  },
+  setEffectsPanelOpen: (v) => set({ effectsPanelOpen: v }),
 
   setQueueOpen: (queueOpen) => set({ queueOpen }),
 

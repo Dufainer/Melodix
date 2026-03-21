@@ -13,6 +13,8 @@ import GenrePage from './pages/GenrePage'
 import Player from './components/Player'
 import NowPlaying from './components/NowPlaying'
 import QueuePanel from './components/QueuePanel'
+import EqPanel from './components/EqPanel'
+import EffectsPanel from './components/EffectsPanel'
 import GlobalSearch from './components/GlobalSearch'
 import { useLibraryStore } from './store'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
@@ -97,6 +99,8 @@ function AppContent() {
       <Player />
       <NowPlaying />
       <QueuePanel />
+      <EqPanel />
+      <EffectsPanel />
       <GlobalSearch />
     </div>
   )
