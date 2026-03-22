@@ -17,6 +17,7 @@ import EqPanel from './components/EqPanel'
 import EffectsPanel from './components/EffectsPanel'
 import GlobalSearch from './components/GlobalSearch'
 import { useLibraryStore } from './store'
+import { THEME_CONFIGS } from './themes'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { Track } from './types'
 
@@ -44,8 +45,23 @@ function rawToTrack(r: RawTrack): Track {
 }
 
 function AppContent() {
-  const { musicFolders, tracks, setTracks, setScanning } = useLibraryStore()
+  const { musicFolders, tracks, setTracks, setScanning, theme, themeOverrides } = useLibraryStore()
   useKeyboardShortcuts()
+
+  useEffect(() => {
+    const el = document.documentElement
+    // Keep data-theme attribute for structural CSS overrides (hover effects, borders, etc.)
+    if (theme === 'default') el.removeAttribute('data-theme')
+    else el.setAttribute('data-theme', theme)
+
+    // Apply all CSS variable values from JS config (allows runtime editing)
+    const base = THEME_CONFIGS[theme] ?? THEME_CONFIGS['default']
+    Object.entries(base).forEach(([k, v]) => el.style.setProperty(k, v))
+
+    // Apply user overrides on top
+    const overrides = themeOverrides[theme] ?? {}
+    Object.entries(overrides).forEach(([k, v]) => el.style.setProperty(k, v))
+  }, [theme, themeOverrides])
 
   // On startup: load disk cache instantly, then rescan in background to pick up changes
   useEffect(() => {

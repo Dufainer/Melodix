@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLibraryStore, PlayEvent } from '../store'
 import LazyCover from '../components/LazyCover'
+import { useThemeLabels } from '../hooks/useThemeLabels'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
 type TopTab = 'song' | 'album' | 'artist'
@@ -127,6 +128,7 @@ export default function StatsPage() {
   const { playHistory, tracks } = useLibraryStore()
   const [period, setPeriod] = useState<Period>('week')
   const [topTab, setTopTab] = useState<TopTab>('song')
+  const L = useThemeLabels()
 
   const filtered = useMemo(() => {
     const start = getPeriodStart(period)
@@ -225,7 +227,7 @@ export default function StatsPage() {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-5 pt-5 pb-4 border-b border-white/5 shrink-0">
-        <h1 className="text-2xl font-bold text-white">Listening Stats</h1>
+        <h1 className="text-2xl font-bold text-white">{L.statsTitle}</h1>
       </div>
 
       {/* Period tabs */}
@@ -248,22 +250,22 @@ export default function StatsPage() {
       <div className="flex-1 px-5 py-4 space-y-5">
         {/* Stat cards */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-2xl bg-blue-900/30 border border-blue-700/20 p-4">
-            <p className="text-xs text-blue-300/70 font-medium mb-1">Listening</p>
+          <div className="rounded-2xl p-4" style={{ background: 'var(--color-accent-faint)', border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)' }}>
+            <p className="text-xs font-medium mb-1" style={{ color: 'var(--color-accent-light)' }}>{L.statsListening}</p>
             <p className="text-2xl font-bold text-white">{fmtBig(totalSecs)}</p>
           </div>
-          <div className="rounded-2xl bg-purple-900/30 border border-purple-700/20 p-4">
-            <p className="text-xs text-purple-300/70 font-medium mb-1">Plays</p>
+          <div className="rounded-2xl p-4" style={{ background: 'color-mix(in srgb, var(--color-accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--color-accent) 18%, transparent)' }}>
+            <p className="text-xs font-medium mb-1" style={{ color: 'var(--color-accent-light)', opacity: 0.8 }}>{L.statsPlays}</p>
             <p className="text-2xl font-bold text-white">{totalPlays}</p>
           </div>
-          <div className="rounded-2xl bg-zinc-800/60 border border-white/5 p-4">
-            <p className="text-xs text-zinc-400 font-medium mb-1">Avg/day</p>
+          <div className="rounded-2xl bg-white/5 border border-white/5 p-4">
+            <p className="text-xs text-zinc-400 font-medium mb-1">{L.statsAvgPerDay}</p>
             <p className="text-2xl font-bold text-white">{fmtTime(avgPerDaySecs)}</p>
           </div>
         </div>
 
         {/* Dynamic chart */}
-        <div className="rounded-2xl bg-blue-900/20 border border-blue-800/20 p-4">
+        <div className="rounded-2xl p-4" style={{ background: 'var(--color-accent-faint)', border: '1px solid color-mix(in srgb, var(--color-accent) 18%, transparent)' }}>
           <p className="text-sm font-semibold text-white mb-0.5">{CHART_META[period].title}</p>
           <p className="text-xs text-zinc-500 mb-4">{CHART_META[period].subtitle}</p>
           <div className="flex items-end gap-1 mb-2">
@@ -276,9 +278,7 @@ export default function StatsPage() {
                     <span className="text-[9px] text-zinc-400 tabular-nums leading-none">{fmtTime(secs)}</span>
                   )}
                   <div
-                    className={`w-full rounded-t-md rounded-b-sm transition-all ${
-                      isPeak ? 'bg-blue-400' : secs > 0 ? 'bg-blue-700/60' : 'bg-white/5'
-                    }`}
+                    className={`w-full transition-all ${isPeak ? 'stats-chart-bar-peak' : secs > 0 ? 'stats-chart-bar' : 'bg-white/5'}`}
                     style={{ height: `${barPx}px` }}
                   />
                   {label && <span className="text-[9px] text-zinc-500 truncate w-full text-center">{label}</span>}
@@ -288,9 +288,10 @@ export default function StatsPage() {
           </div>
           {chartBuckets[peakBucketIdx]?.secs > 0 && (
             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">
-              <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs shrink-0">↑</div>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0"
+                style={{ background: 'var(--color-accent-faint)', color: 'var(--color-accent)' }}>↑</div>
               <div>
-                <p className="text-xs font-medium text-zinc-300">Peak segment</p>
+                <p className="text-xs font-medium text-zinc-300">{L.statsPeakSegment}</p>
                 <p className="text-xs text-zinc-500">{chartBuckets[peakBucketIdx].label} · {fmtTime(chartBuckets[peakBucketIdx].secs)}</p>
               </div>
             </div>
@@ -299,8 +300,8 @@ export default function StatsPage() {
 
         {/* Top categories */}
         <div>
-          <h2 className="text-sm font-semibold text-white mb-1">Top categories</h2>
-          <p className="text-xs text-zinc-600 mb-3">Compare how you listen across songs, albums, and artists.</p>
+          <h2 className="text-sm font-semibold text-white mb-1">{L.statsTopCategories}</h2>
+          <p className="text-xs text-zinc-600 mb-3">{L.statsTopCategoriesDesc}</p>
           <div className="flex gap-2 mb-3">
             {(['song', 'album', 'artist'] as TopTab[]).map(tab => (
               <button
@@ -312,16 +313,16 @@ export default function StatsPage() {
                     : 'bg-white/5 text-zinc-400 hover:text-zinc-200 border border-transparent'
                 }`}
               >
-                {tab === 'song' ? 'Song' : tab === 'album' ? 'Album' : 'Artist'}
+                {tab === 'song' ? L.statsTabSong : tab === 'album' ? L.statsTabAlbum : L.statsTabArtist}
               </button>
             ))}
           </div>
 
           {topTab === 'song' && (
-            <div className="rounded-2xl bg-blue-900/20 border border-blue-800/20 overflow-hidden">
-              <p className="text-sm font-semibold text-white px-4 pt-4 pb-3">Listening by song</p>
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--color-accent-faint)', border: '1px solid color-mix(in srgb, var(--color-accent) 18%, transparent)' }}>
+              <p className="text-sm font-semibold text-white px-4 pt-4 pb-3">{L.statsTopSongs}</p>
               {topTracks.length === 0
-                ? <p className="text-xs text-zinc-600 px-4 pb-4">No data for this period</p>
+                ? <p className="text-xs text-zinc-600 px-4 pb-4">{L.statsNoData}</p>
                 : topTracks.map((item, i) => (
                   <div key={item.path} className={`px-4 py-3 ${i > 0 ? 'border-t border-white/5' : ''}`}>
                     <div className="flex items-center gap-3">
@@ -336,7 +337,7 @@ export default function StatsPage() {
                       <span className="text-xs text-zinc-400 shrink-0">{fmtTime(item.secs)}</span>
                     </div>
                     <div className="mt-2 ml-10 h-0.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-accent/50 rounded-full" style={{ width: `${(item.secs / maxTopSecs) * 100}%` }} />
+                      <div className="h-full stats-progress-bar rounded-full" style={{ width: `${(item.secs / maxTopSecs) * 100}%` }} />
                     </div>
                   </div>
                 ))}
@@ -344,14 +345,15 @@ export default function StatsPage() {
           )}
 
           {topTab === 'artist' && (
-            <div className="rounded-2xl bg-zinc-800/40 border border-white/5 overflow-hidden">
-              <p className="text-sm font-semibold text-white px-4 pt-4 pb-3">Top artists</p>
+            <div className="rounded-2xl bg-white/4 border border-white/8 overflow-hidden">
+              <p className="text-sm font-semibold text-white px-4 pt-4 pb-3">{L.statsTopArtists}</p>
               {topArtists.length === 0
-                ? <p className="text-xs text-zinc-600 px-4 pb-4">No data for this period</p>
+                ? <p className="text-xs text-zinc-600 px-4 pb-4">{L.statsNoData}</p>
                 : topArtists.map((item, i) => (
                   <div key={item.artist} className={`px-4 py-3 ${i > 0 ? 'border-t border-white/5' : ''}`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-zinc-300 shrink-0">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                        style={{ background: 'var(--color-accent-faint)', color: 'var(--color-accent-light)' }}>
                         {item.artist.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -361,7 +363,7 @@ export default function StatsPage() {
                       <span className="text-xs text-zinc-400 shrink-0">{fmtTime(item.secs)}</span>
                     </div>
                     <div className="mt-2 h-0.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-zinc-400/40 rounded-full" style={{ width: `${(item.plays / maxArtistPlays) * 100}%` }} />
+                      <div className="h-full stats-progress-bar rounded-full" style={{ width: `${(item.plays / maxArtistPlays) * 100}%` }} />
                     </div>
                   </div>
                 ))}
@@ -369,10 +371,10 @@ export default function StatsPage() {
           )}
 
           {topTab === 'album' && (
-            <div className="rounded-2xl bg-purple-900/20 border border-purple-800/20 overflow-hidden">
-              <p className="text-sm font-semibold text-white px-4 pt-4 pb-3">Top albums</p>
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-accent) 16%, transparent)' }}>
+              <p className="text-sm font-semibold text-white px-4 pt-4 pb-3">{L.statsTopAlbums}</p>
               {topAlbums.length === 0
-                ? <p className="text-xs text-zinc-600 px-4 pb-4">No data for this period</p>
+                ? <p className="text-xs text-zinc-600 px-4 pb-4">{L.statsNoData}</p>
                 : topAlbums.map((item, i) => (
                   <div key={item.album} className={`px-4 py-3 ${i > 0 ? 'border-t border-white/5' : ''}`}>
                     <div className="flex items-center gap-3">
@@ -384,7 +386,7 @@ export default function StatsPage() {
                       <span className="text-xs text-zinc-400 shrink-0">{fmtTime(item.secs)}</span>
                     </div>
                     <div className="mt-2 h-0.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-purple-400/40 rounded-full" style={{ width: `${(item.plays / maxAlbumPlays) * 100}%` }} />
+                      <div className="h-full stats-progress-bar rounded-full" style={{ width: `${(item.plays / maxAlbumPlays) * 100}%` }} />
                     </div>
                   </div>
                 ))}
@@ -437,13 +439,13 @@ export default function StatsPage() {
                     className="w-full h-full rounded-full"
                     style={{
                       background: `conic-gradient(
-                        #818cf8 0% ${top1Pct}%,
-                        #a78bfa ${top1Pct}% ${top3Pct}%,
-                        #1e293b ${top3Pct}% 100%
+                        var(--color-accent) 0% ${top1Pct}%,
+                        var(--color-accent-light) ${top1Pct}% ${top3Pct}%,
+                        rgba(255,255,255,0.08) ${top3Pct}% 100%
                       )`
                     }}
                   />
-                  <div className="absolute inset-4 rounded-full bg-[#0a0a0f] flex items-center justify-center">
+                  <div className="absolute inset-4 rounded-full flex items-center justify-center" style={{ background: 'var(--color-bg)' }}>
                     <div className="text-center">
                       <p className="text-lg font-bold text-white">{top3Pct}%</p>
                       <p className="text-[9px] text-zinc-500">Top 3 share</p>
@@ -463,12 +465,12 @@ export default function StatsPage() {
               </div>
               <div className="mt-4 space-y-2">
                 {[
-                  { label: 'Top 1', pct: top1Pct, secs: top1Secs, color: 'bg-indigo-400' },
-                  { label: 'Top 2–3', pct: top3Pct - top1Pct, secs: top3Secs - top1Secs, color: 'bg-violet-400' },
-                  { label: 'Others', pct: 100 - top3Pct, secs: totalSecs - top3Secs, color: 'bg-zinc-600' },
-                ].map(({ label, pct, secs, color }) => (
+                  { label: 'Top 1', pct: top1Pct, secs: top1Secs, dotStyle: { background: 'var(--color-accent)' } as React.CSSProperties },
+                  { label: 'Top 2–3', pct: top3Pct - top1Pct, secs: top3Secs - top1Secs, dotStyle: { background: 'var(--color-accent-light)' } as React.CSSProperties },
+                  { label: 'Others', pct: 100 - top3Pct, secs: totalSecs - top3Secs, dotStyle: { background: 'rgba(255,255,255,0.25)' } as React.CSSProperties },
+                ].map(({ label, pct, secs, dotStyle }) => (
                   <div key={label} className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
+                    <div className="w-2 h-2 rounded-full shrink-0" style={dotStyle} />
                     <span className="text-xs text-zinc-400 w-12">{label}</span>
                     <span className="text-xs text-zinc-500 w-8 tabular-nums">{pct}%</span>
                     <span className="text-xs text-zinc-600">{fmtTime(secs)}</span>
@@ -481,7 +483,7 @@ export default function StatsPage() {
 
         {totalPlays === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-2 text-zinc-600">
-            <p className="text-sm">No listening data for this period</p>
+            <p className="text-sm">{L.statsNoData}</p>
             <p className="text-xs text-zinc-700">Play some music to see your stats</p>
           </div>
         )}

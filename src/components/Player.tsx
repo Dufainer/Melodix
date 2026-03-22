@@ -271,7 +271,7 @@ export default function Player() {
   if (nowPlayingOpen) return null
 
   return (
-    <div className="shrink-0 border-t border-white/5 bg-surface flex items-center gap-4 px-5 h-[72px]">
+    <div className="player-bar shrink-0 flex items-center gap-4 px-5 h-[72px]">
       {/* Track info — click opens NowPlaying */}
       <div className="flex items-center gap-2 w-56 shrink-0 min-w-0">
         <button

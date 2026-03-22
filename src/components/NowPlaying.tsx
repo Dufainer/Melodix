@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import AddToPlaylist from './AddToPlaylist'
+import { useTheme } from '../hooks/useTheme'
 
 type Tab = 'controls' | 'lyrics'
 
@@ -62,7 +63,24 @@ export default function NowPlaying() {
     await invoke('player_seek', { position: secs }).catch(() => {})
   }
 
+  const { theme } = useTheme()
+
   if (!nowPlayingOpen || !playerTrack) return null
+
+  const coverRadius =
+    theme === 'anime' ? '9999px' :
+    theme === 'cyberpunk' || theme === 'blame' ? '0' :
+    theme === 'minimal' ? '0.375rem' :
+    '1.5rem'
+
+  const coverGlow =
+    theme === 'anime' && cover
+      ? `0 0 0 3px color-mix(in srgb, var(--color-accent) 60%, transparent), 0 40px 100px rgba(0,0,0,0.7)`
+      : theme === 'blame' && cover
+      ? `0 0 0 1px rgba(78,173,200,0.30), 0 0 60px rgba(78,173,200,0.15), 0 40px 100px rgba(0,0,0,0.9)`
+      : cover
+      ? '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)'
+      : '0 40px 100px rgba(0,0,0,0.5)'
 
   const quality: string[] = []
   if (playerTrack.sampleRate > 0) quality.push(`${(playerTrack.sampleRate / 1000).toFixed(1)} kHz`)
@@ -70,9 +88,9 @@ export default function NowPlaying() {
   if (playerTrack.format) quality.push(playerTrack.format.toUpperCase())
 
   return (
-    <div className="fixed inset-0 z-50 flex overflow-hidden">
+    <div className="fixed inset-0 z-50 flex overflow-hidden now-playing-overlay">
       {/* Ambient background */}
-      <div className="absolute inset-0 bg-[#06090f]" />
+      <div className="absolute inset-0" style={{ background: 'var(--color-bg)' }} />
       {cover && (
         <>
           <img src={cover} aria-hidden
@@ -100,12 +118,11 @@ export default function NowPlaying() {
         {/* LEFT — cover art */}
         <div className="flex-none flex items-center justify-center" style={{ width: '42%' }}>
           <div
-            className="rounded-3xl overflow-hidden flex items-center justify-center bg-black/30"
+            className="overflow-hidden flex items-center justify-center bg-black/30 transition-all duration-500"
             style={{
               width: 370, height: 370,
-              boxShadow: cover
-                ? '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)'
-                : '0 40px 100px rgba(0,0,0,0.5)',
+              borderRadius: coverRadius,
+              boxShadow: coverGlow,
             }}
           >
             {cover
@@ -207,7 +224,7 @@ export default function NowPlaying() {
                     <SkipBack className="w-6 h-6" />
                   </button>
                   <button onClick={() => setIsPlaying(!isPlaying)}
-                    className="w-14 h-14 rounded-2xl bg-accent hover:bg-accent/80 flex items-center justify-center shadow-[0_8px_32px_rgba(99,102,241,0.35)] transition-all active:scale-95">
+                    className="w-14 h-14 rounded-2xl np-play-btn flex items-center justify-center">
                     {isPlaying
                       ? <Pause className="w-6 h-6 text-white" />
                       : <Play className="w-6 h-6 text-white ml-0.5" />}

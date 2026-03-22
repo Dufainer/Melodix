@@ -80,7 +80,7 @@ export default function DailyMixModal({ open, onClose, dailyMix, artistStats }: 
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-[#080c12] overflow-hidden">
+    <div className="fixed inset-0 z-40 flex flex-col overflow-hidden" style={{ background: 'var(--color-bg)' }}>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative shrink-0 overflow-hidden" style={{ height: 260 }}>
@@ -106,7 +106,8 @@ export default function DailyMixModal({ open, onClose, dailyMix, artistStats }: 
         })}
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-[#080c12] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 40%, var(--color-bg) 100%)' }} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent pointer-events-none" />
 
         {/* Close button */}
@@ -132,7 +133,7 @@ export default function DailyMixModal({ open, onClose, dailyMix, artistStats }: 
       </div>
 
       {/* ── Action buttons ────────────────────────────────────────── */}
-      <div className="shrink-0 flex items-center gap-2 px-5 py-4 border-b border-white/5">
+      <div className="shrink-0 flex items-center gap-2 px-5 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
         <button
           onClick={handlePlay}
           disabled={dailyMix.length === 0}
@@ -165,7 +166,7 @@ export default function DailyMixModal({ open, onClose, dailyMix, artistStats }: 
 
       {/* ── Artist stats bar ──────────────────────────────────────── */}
       {artistStats.length > 0 && (
-        <div className="shrink-0 px-5 py-3 border-b border-white/5">
+        <div className="shrink-0 px-5 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-2">Most Played Artists</p>
           <div className="flex flex-col gap-1.5">
             {artistStats.slice(0, 4).map(({ artist, plays }, i) => {
@@ -205,14 +206,18 @@ export default function DailyMixModal({ open, onClose, dailyMix, artistStats }: 
               <div
                 key={track.path}
                 onClick={() => handlePlayTrack(track, i)}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                  active ? 'bg-accent/15' : 'hover:bg-white/5'
-                }`}
+                className="group flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all"
+                style={{
+                  borderRadius: 'var(--radius-md)',
+                  background: active ? 'color-mix(in srgb, var(--color-accent) 14%, transparent)' : undefined,
+                }}
+                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-card-hover)' }}
+                onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '' }}
               >
                 <span className={`text-xs tabular-nums w-5 text-right shrink-0 ${active ? 'text-accent' : 'text-zinc-700'}`}>
                   {i + 1}
                 </span>
-                <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/5 border border-white/8 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0" style={{ borderRadius: 'var(--radius-sm)', background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
                   {track.coverArt
                     ? <img src={`data:image/jpeg;base64,${track.coverArt}`} alt="" className="w-full h-full object-cover" />
                     : <Music2 className="w-4 h-4 text-zinc-700" />

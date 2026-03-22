@@ -8,15 +8,358 @@
   animation: fade-in 0.25s ease;
 }
 
-/* ── Design tokens ─────────────────────────────────────────────── */
+/* ── Tailwind design-token registration ─────────────────────────── */
 @theme {
   --color-bg:      #0a0a0f;
   --color-surface: #111118;
   --color-card:    rgba(255, 255, 255, 0.05);
   --color-border:  rgba(255, 255, 255, 0.08);
   --color-accent:  #7c5cfc;
-
   --font-sans: "Inter", "system-ui", sans-serif;
+}
+
+/* ── Runtime theme tokens (overridden by [data-theme]) ──────────── */
+:root {
+  --color-bg:           #0a0a0f;
+  --color-surface:      #111118;
+  --color-card:         rgba(255, 255, 255, 0.05);
+  --color-border:       rgba(255, 255, 255, 0.08);
+  --color-accent:       #7c5cfc;
+  --color-accent-light: #a78bfa;
+  --color-accent-faint: rgba(124, 92, 252, 0.12);
+  --color-text:         #e2e8f0;
+  --color-muted:        #71717a;
+  --color-card-hover:   rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.12);
+
+  /* Hero gradient (Home page) */
+  --hero-from:   #2e1065;
+  --hero-via:    rgba(30, 27, 75, 0.8);
+
+  --radius-sm:   0.375rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.5rem;
+  --radius-pill: 9999px;
+
+  --font-body:   "Inter", system-ui, sans-serif;
+
+  --shadow-card: none;
+  --shadow-glow: none;
+}
+
+/* ══ THEMES ══════════════════════════════════════════════════════════ */
+
+/* ── Sakura ─────────────────────────────────────────────────────── */
+[data-theme="anime"] {
+  --color-bg:           #0d0b1a;
+  --color-surface:      #160d2e;
+  --color-card:         rgba(255, 110, 180, 0.07);
+  --color-border:       rgba(255, 110, 180, 0.22);
+  --color-accent:       #ff6eb4;
+  --color-accent-light: #ffb8d9;
+  --color-accent-faint: rgba(255, 110, 180, 0.10);
+  --color-text:         #f0e6f0;
+  --color-muted:        #9b7aa0;
+  --color-card-hover:   rgba(255, 110, 180, 0.13);
+  --color-border-hover: rgba(255, 110, 180, 0.40);
+
+  --hero-from:   #3d0a28;
+  --hero-via:    rgba(50, 10, 60, 0.8);
+
+  --radius-sm:   0.625rem;
+  --radius-md:   1.25rem;
+  --radius-lg:   1.75rem;
+  --radius-xl:   2.25rem;
+
+  --font-body:   "Nunito", system-ui, sans-serif;
+
+  --shadow-card: 0 4px 24px rgba(255, 110, 180, 0.08);
+  --shadow-glow: 0 0 24px rgba(255, 110, 180, 0.20);
+}
+
+/* ── Goth ────────────────────────────────────────────────────────── */
+[data-theme="goth"] {
+  --color-bg:           #060308;
+  --color-surface:      #0E0812;
+  --color-card:         rgba(90, 20, 80, 0.07);
+  --color-border:       rgba(120, 30, 90, 0.22);
+  --color-accent:       #9B1B3A;
+  --color-accent-light: #D4395A;
+  --color-accent-faint: rgba(155, 27, 58, 0.10);
+  --color-text:         #C0B0D0;
+  --color-muted:        #5A3A6A;
+  --color-card-hover:   rgba(90, 20, 80, 0.13);
+  --color-border-hover: rgba(155, 27, 58, 0.45);
+
+  --hero-from:   #1A0820;
+  --hero-via:    rgba(10, 4, 15, 0.92);
+
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.875rem;
+  --radius-xl:   1.25rem;
+  --radius-pill: 9999px;
+
+  --font-body:   "Cinzel", Georgia, serif;
+
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 24px rgba(155, 27, 58, 0.22);
+}
+
+/* ── Rambo ───────────────────────────────────────────────────────── */
+[data-theme="rambo"] {
+  --color-bg:           #040C03;
+  --color-surface:      #0A1508;
+  --color-card:         rgba(80, 100, 40, 0.08);
+  --color-border:       rgba(100, 130, 50, 0.22);
+  --color-accent:       #8B2020;
+  --color-accent-light: #C43535;
+  --color-accent-faint: rgba(139, 32, 32, 0.10);
+  --color-text:         #D4C8A0;
+  --color-muted:        #3D5028;
+  --color-card-hover:   rgba(80, 100, 40, 0.14);
+  --color-border-hover: rgba(100, 130, 50, 0.40);
+
+  --hero-from:   #0A1C08;
+  --hero-via:    rgba(4, 12, 3, 0.90);
+
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.875rem;
+  --radius-xl:   1.25rem;
+  --radius-pill: 9999px;
+
+  --font-body:   "Rajdhani", system-ui, sans-serif;
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 18px rgba(139, 32, 32, 0.20);
+}
+
+/* ── Balmain ─────────────────────────────────────────────────────── */
+[data-theme="balmain"] {
+  --color-bg:           #080603;
+  --color-surface:      #110e0a;
+  --color-card:         rgba(201, 168, 76, 0.04);
+  --color-border:       rgba(201, 168, 76, 0.18);
+  --color-accent:       #C9A84C;
+  --color-accent-light: #E5C97E;
+  --color-accent-faint: rgba(201, 168, 76, 0.08);
+  --color-text:         #F5F0E8;
+  --color-muted:        #7A7060;
+  --color-card-hover:   rgba(201, 168, 76, 0.08);
+  --color-border-hover: rgba(201, 168, 76, 0.40);
+
+  --hero-from:   #1C150A;
+  --hero-via:    rgba(12, 10, 6, 0.85);
+
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+
+  --font-body:   "Cormorant Garamond", Georgia, serif;
+
+  --shadow-card: 0 2px 12px rgba(201, 168, 76, 0.06);
+  --shadow-glow: 0 0 20px rgba(201, 168, 76, 0.14);
+}
+
+/* ── Blame! ──────────────────────────────────────────────────────── */
+[data-theme="blame"] {
+  --color-bg:           #020204;
+  --color-surface:      #06080E;
+  --color-card:         rgba(78, 173, 200, 0.03);
+  --color-border:       rgba(78, 173, 200, 0.12);
+  --color-accent:       #4EADC8;
+  --color-accent-light: #8DD4EA;
+  --color-accent-faint: rgba(78, 173, 200, 0.07);
+  --color-text:         #B4CDD8;
+  --color-muted:        #2C4455;
+  --color-card-hover:   rgba(78, 173, 200, 0.06);
+  --color-border-hover: rgba(78, 173, 200, 0.35);
+
+  --hero-from:   #081420;
+  --hero-via:    rgba(2, 6, 12, 0.92);
+
+  /* Zero radius — brutalist megastructure */
+  --radius-sm:   0;
+  --radius-md:   0;
+  --radius-lg:   0;
+  --radius-xl:   0;
+  --radius-pill: 2px;
+
+  --font-body:   "Space Mono", monospace;
+
+  --shadow-card: none;
+  --shadow-glow: 0 0 20px rgba(78, 173, 200, 0.22);
+}
+
+/* ── Cyberpunk ───────────────────────────────────────────────────── */
+[data-theme="cyberpunk"] {
+  --color-bg:           #060608;
+  --color-surface:      #0c0c10;
+  --color-card:         rgba(232, 240, 17, 0.03);
+  --color-border:       rgba(232, 240, 17, 0.30);
+  --color-accent:       #e8f011;
+  --color-accent-light: #f0ff50;
+  --color-accent-faint: rgba(232, 240, 17, 0.07);
+  --color-text:         #e8f0e0;
+  --color-muted:        #6b7050;
+  --color-card-hover:   rgba(232, 240, 17, 0.07);
+  --color-border-hover: rgba(232, 240, 17, 0.60);
+
+  --hero-from:   #1a1a00;
+  --hero-via:    rgba(20, 20, 8, 0.85);
+
+  --radius-sm:   0.125rem;
+  --radius-md:   0.125rem;
+  --radius-lg:   0.25rem;
+  --radius-xl:   0.25rem;
+
+  --font-body:   "Rajdhani", system-ui, sans-serif;
+
+  --shadow-card: none;
+  --shadow-glow: 0 0 16px rgba(232, 240, 17, 0.22);
+}
+
+/* ── Ocean ───────────────────────────────────────────────────────── */
+[data-theme="ocean"] {
+  --color-bg:           #050d1a;
+  --color-surface:      #0a1628;
+  --color-card:         rgba(34, 211, 238, 0.05);
+  --color-border:       rgba(34, 211, 238, 0.15);
+  --color-accent:       #22d3ee;
+  --color-accent-light: #67e8f9;
+  --color-accent-faint: rgba(34, 211, 238, 0.08);
+  --color-text:         #e0f0f8;
+  --color-muted:        #5a8090;
+  --color-card-hover:   rgba(34, 211, 238, 0.10);
+  --color-border-hover: rgba(34, 211, 238, 0.30);
+
+  --hero-from:   #0a2040;
+  --hero-via:    rgba(5, 20, 50, 0.8);
+
+  --radius-sm:   0.5rem;
+  --radius-md:   1rem;
+  --radius-lg:   1.375rem;
+  --radius-xl:   1.875rem;
+
+  --font-body:   "DM Sans", system-ui, sans-serif;
+
+  --shadow-card: 0 4px 20px rgba(34, 211, 238, 0.06);
+  --shadow-glow: 0 0 20px rgba(34, 211, 238, 0.14);
+}
+
+/* ── Vaporwave ───────────────────────────────────────────────────── */
+[data-theme="vaporwave"] {
+  --color-bg:           #0f0618;
+  --color-surface:      #190c28;
+  --color-card:         rgba(255, 45, 155, 0.07);
+  --color-border:       rgba(255, 45, 155, 0.24);
+  --color-accent:       #ff2d9b;
+  --color-accent-light: #ff80c4;
+  --color-accent-faint: rgba(255, 45, 155, 0.10);
+  --color-text:         #f0d8f8;
+  --color-muted:        #8060a0;
+  --color-card-hover:   rgba(255, 45, 155, 0.13);
+  --color-border-hover: rgba(255, 45, 155, 0.45);
+
+  --hero-from:   #3a0030;
+  --hero-via:    rgba(40, 5, 60, 0.85);
+
+  --radius-sm:   0.5rem;
+  --radius-md:   0.875rem;
+  --radius-lg:   1.25rem;
+  --radius-xl:   1.75rem;
+
+  --font-body:   "Outfit", system-ui, sans-serif;
+
+  --shadow-card: 0 4px 24px rgba(255, 45, 155, 0.10);
+  --shadow-glow: 0 0 32px rgba(255, 45, 155, 0.18);
+}
+
+/* ── Minimal ─────────────────────────────────────────────────────── */
+[data-theme="minimal"] {
+  --color-bg:           #0c0c0c;
+  --color-surface:      #141414;
+  --color-card:         rgba(255, 255, 255, 0.03);
+  --color-border:       rgba(255, 255, 255, 0.07);
+  --color-accent:       #c8c8c8;
+  --color-accent-light: #f0f0f0;
+  --color-accent-faint: rgba(255, 255, 255, 0.05);
+  --color-text:         #e8e8e8;
+  --color-muted:        #6b6b6b;
+  --color-card-hover:   rgba(255, 255, 255, 0.06);
+  --color-border-hover: rgba(255, 255, 255, 0.12);
+
+  --hero-from:   #1a1a1a;
+  --hero-via:    rgba(12, 12, 12, 0.85);
+
+  --radius-sm:   0.25rem;
+  --radius-md:   0.375rem;
+  --radius-lg:   0.5rem;
+  --radius-xl:   0.75rem;
+
+  --font-body:   "DM Sans", system-ui, sans-serif;
+
+  --shadow-card: none;
+  --shadow-glow: none;
+}
+
+/* ── Forest ──────────────────────────────────────────────────────── */
+[data-theme="forest"] {
+  --color-bg:           #050f08;
+  --color-surface:      #0a1810;
+  --color-card:         rgba(74, 222, 128, 0.05);
+  --color-border:       rgba(74, 222, 128, 0.15);
+  --color-accent:       #4ade80;
+  --color-accent-light: #86efac;
+  --color-accent-faint: rgba(74, 222, 128, 0.08);
+  --color-text:         #e0f0e4;
+  --color-muted:        #527a5c;
+  --color-card-hover:   rgba(74, 222, 128, 0.10);
+  --color-border-hover: rgba(74, 222, 128, 0.30);
+
+  --hero-from:   #052010;
+  --hero-via:    rgba(5, 15, 8, 0.85);
+
+  --radius-sm:   0.5rem;
+  --radius-md:   0.875rem;
+  --radius-lg:   1.25rem;
+  --radius-xl:   1.625rem;
+
+  --font-body:   "DM Sans", system-ui, sans-serif;
+
+  --shadow-card: 0 4px 16px rgba(74, 222, 128, 0.05);
+  --shadow-glow: 0 0 18px rgba(74, 222, 128, 0.12);
+}
+
+/* ── Ember ───────────────────────────────────────────────────────── */
+[data-theme="ember"] {
+  --color-bg:           #100806;
+  --color-surface:      #1a100a;
+  --color-card:         rgba(249, 115, 22, 0.05);
+  --color-border:       rgba(249, 115, 22, 0.18);
+  --color-accent:       #f97316;
+  --color-accent-light: #fdba74;
+  --color-accent-faint: rgba(249, 115, 22, 0.08);
+  --color-text:         #f0e8e0;
+  --color-muted:        #8a6050;
+  --color-card-hover:   rgba(249, 115, 22, 0.10);
+  --color-border-hover: rgba(249, 115, 22, 0.35);
+
+  --hero-from:   #2a0e04;
+  --hero-via:    rgba(20, 8, 4, 0.85);
+
+  --radius-sm:   0.375rem;
+  --radius-md:   0.625rem;
+  --radius-lg:   0.875rem;
+  --radius-xl:   1.25rem;
+
+  --font-body:   "Lato", system-ui, sans-serif;
+
+  --shadow-card: 0 4px 20px rgba(249, 115, 22, 0.07);
+  --shadow-glow: 0 0 22px rgba(249, 115, 22, 0.14);
 }
 
 /* ── Base reset ────────────────────────────────────────────────── */
@@ -33,8 +376,8 @@ html, body, #root {
 
 body {
   background-color: var(--color-bg);
-  color: #e2e8f0;
-  font-family: var(--font-sans);
+  color: var(--color-text);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -80,23 +423,26 @@ body {
 .glass-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 1rem;
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-card);
 }
 
 /* ── Track card ────────────────────────────────────────────────── */
 .track-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   padding: 0.75rem;
-  transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
+  box-shadow: var(--shadow-card);
+  transition: background 200ms ease, border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
 .track-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--color-card-hover);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-glow);
 }
 
 /* ── Format badge ──────────────────────────────────────────────── */
@@ -107,7 +453,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.05em;
   padding: 0.15rem 0.45rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   border-width: 1px;
   border-style: solid;
   white-space: nowrap;
@@ -117,17 +463,17 @@ body {
 /* ── Buttons ───────────────────────────────────────────────────── */
 .btn-primary {
   background-color: var(--color-accent);
-  color: white;
-  font-weight: 500;
+  color: #000;
+  font-weight: 600;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
-  transition: background-color 200ms ease, opacity 200ms ease, transform 200ms ease;
+  transition: filter 200ms ease, opacity 200ms ease, transform 200ms ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #6b4de0;
+  filter: brightness(1.12);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -147,9 +493,432 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-border-hover);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--color-muted);
+}
+
+/* ══ THEME-SPECIFIC STRUCTURAL OVERRIDES ════════════════════════════ */
+
+/* Sakura: pill buttons, glow on primary */
+[data-theme="anime"] .btn-primary {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 18px rgba(255, 110, 180, 0.35);
+  color: #fff;
+}
+[data-theme="anime"] .format-badge {
+  border-radius: var(--radius-pill);
+}
+
+/* Goth: Victorian darkness, wrought iron elegance */
+[data-theme="goth"] .btn-primary {
+  color: #C0B0D0;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  border: 1px solid rgba(155, 27, 58, 0.40);
+}
+[data-theme="goth"] .glass-card {
+  border-color: rgba(120, 30, 90, 0.20);
+  background: rgba(14, 8, 18, 0.88);
+}
+[data-theme="goth"] .track-card {
+  border-color: rgba(120, 30, 90, 0.18);
+}
+[data-theme="goth"] .track-card:hover {
+  border-color: rgba(155, 27, 58, 0.45);
+  box-shadow: 0 0 16px rgba(155, 27, 58, 0.12);
+}
+
+/* Rambo: military tactical, jungle survival */
+[data-theme="rambo"] .btn-primary {
+  color: #D4C8A0;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+[data-theme="rambo"] .glass-card {
+  border-color: rgba(100, 130, 50, 0.20);
+  background: rgba(10, 21, 8, 0.85);
+}
+[data-theme="rambo"] .track-card {
+  border-color: rgba(100, 130, 50, 0.18);
+}
+[data-theme="rambo"] .track-card:hover {
+  border-color: rgba(100, 130, 50, 0.40);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Balmain: editorial serif, thin gold borders */
+[data-theme="balmain"] .btn-primary {
+  color: #000;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+[data-theme="balmain"] .glass-card {
+  border-color: rgba(201, 168, 76, 0.18);
+}
+[data-theme="balmain"] .track-card {
+  border-color: rgba(201, 168, 76, 0.12);
+}
+[data-theme="balmain"] .track-card:hover {
+  border-color: rgba(201, 168, 76, 0.40);
+}
+
+/* Blame!: everything square, GBE accent */
+[data-theme="blame"] .btn-primary {
+  color: #020204;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+[data-theme="blame"] .glass-card {
+  border-color: rgba(78, 173, 200, 0.12);
+  backdrop-filter: none;
+}
+[data-theme="blame"] .track-card {
+  border-color: rgba(78, 173, 200, 0.10);
+}
+[data-theme="blame"] .track-card:hover {
+  border-color: rgba(78, 173, 200, 0.35);
+  box-shadow: 0 0 12px rgba(78, 173, 200, 0.12);
+}
+
+/* Cyberpunk: sharp everything + left-border accent on hover */
+[data-theme="cyberpunk"] .track-card:hover {
+  border-left: 2px solid var(--color-accent);
+  box-shadow: var(--shadow-glow);
+}
+[data-theme="cyberpunk"] .btn-primary {
+  color: #000;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+[data-theme="cyberpunk"] .glass-card {
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* Vaporwave: gradient tint on cards */
+[data-theme="vaporwave"] .track-card {
+  background: linear-gradient(135deg,
+    rgba(255, 45, 155, 0.06) 0%,
+    rgba(120, 40, 200, 0.06) 100%
+  );
+}
+[data-theme="vaporwave"] .track-card:hover {
+  background: linear-gradient(135deg,
+    rgba(255, 45, 155, 0.12) 0%,
+    rgba(120, 40, 200, 0.12) 100%
+  );
+}
+
+/* Minimal: remove all glows, no shadows */
+[data-theme="minimal"] .track-card:hover {
+  box-shadow: none;
+  transform: none;
+}
+[data-theme="minimal"] .glass-card {
+  backdrop-filter: none;
+}
+
+/* Ember: warm btn */
+[data-theme="ember"] .btn-primary {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ══ PLAYER BAR ═════════════════════════════════════════════════════ */
+.player-bar {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* Cyberpunk: scanline accent on player */
+[data-theme="cyberpunk"] .player-bar {
+  border-top: 1px solid var(--color-accent);
+  box-shadow: 0 -1px 12px rgba(232, 240, 17, 0.12);
+}
+
+/* Sakura: soft glow player bar */
+[data-theme="anime"] .player-bar {
+  border-top: 1px solid rgba(255, 110, 180, 0.30);
+  box-shadow: 0 -1px 20px rgba(255, 110, 180, 0.08);
+}
+
+/* Vaporwave: gradient top border */
+[data-theme="vaporwave"] .player-bar {
+  border-top: 1px solid rgba(255, 45, 155, 0.35);
+  box-shadow: 0 -1px 20px rgba(255, 45, 155, 0.10);
+}
+
+/* Goth: deep crimson line, shadow below */
+[data-theme="goth"] .player-bar {
+  border-top: 1px solid rgba(155, 27, 58, 0.30);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.70);
+}
+
+/* Rambo: olive green border, military line */
+[data-theme="rambo"] .player-bar {
+  border-top: 1px solid rgba(100, 130, 50, 0.30);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Blame!: GBE cold beam line above player */
+[data-theme="blame"] .player-bar {
+  border-top: 1px solid rgba(78, 173, 200, 0.20);
+  box-shadow: 0 -1px 20px rgba(78, 173, 200, 0.10);
+}
+
+/* Balmain: thin gold line */
+[data-theme="balmain"] .player-bar {
+  border-top: 1px solid rgba(201, 168, 76, 0.22);
+  box-shadow: 0 -1px 16px rgba(201, 168, 76, 0.06);
+}
+
+/* ══ NOW PLAYING OVERLAY ════════════════════════════════════════════ */
+.now-playing-overlay {
+  background: var(--color-bg);
+}
+
+[data-theme="cyberpunk"] .now-playing-overlay {
+  background: #030303;
+}
+
+/* ══ SONG ROWS ══════════════════════════════════════════════════════ */
+/* Creative hover effects per theme */
+.song-row {
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+/* Sakura: pop-up with glow on hover */
+[data-theme="anime"] .song-row:hover {
+  box-shadow: 0 4px 20px rgba(255, 110, 180, 0.12);
+  transform: translateY(-1px);
+}
+[data-theme="anime"] .song-row.active {
+  background: rgba(255, 110, 180, 0.12) !important;
+  box-shadow: 0 2px 16px rgba(255, 110, 180, 0.15);
+}
+
+/* Goth: grimoire entries — crimson bleed on active, shadow hover */
+[data-theme="goth"] .song-row {
+  border-bottom: 1px solid rgba(120, 30, 90, 0.08);
+  letter-spacing: 0.06em;
+}
+[data-theme="goth"] .song-row:hover {
+  background: rgba(90, 20, 80, 0.10) !important;
+  box-shadow: inset 0 0 20px rgba(155, 27, 58, 0.04);
+}
+[data-theme="goth"] .song-row.active {
+  background: rgba(155, 27, 58, 0.10) !important;
+  box-shadow: inset 0 0 24px rgba(155, 27, 58, 0.10);
+  border-bottom-color: rgba(155, 27, 58, 0.20);
+}
+
+/* Rambo: mission file rows — blood red left indicator on active */
+[data-theme="rambo"] .song-row {
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid rgba(100, 130, 50, 0.06);
+  letter-spacing: 0.04em;
+}
+[data-theme="rambo"] .song-row:hover {
+  background: rgba(80, 100, 40, 0.08) !important;
+  border-left-color: rgba(139, 32, 32, 0.40);
+}
+[data-theme="rambo"] .song-row.active {
+  background: rgba(139, 32, 32, 0.08) !important;
+  border-left-color: #8B2020 !important;
+}
+
+/* Blame!: GBE scan line — thick cold beam on active, barely-there hover */
+[data-theme="blame"] .song-row {
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid rgba(78, 173, 200, 0.04);
+}
+[data-theme="blame"] .song-row:hover {
+  background: rgba(78, 173, 200, 0.04) !important;
+  border-left-color: rgba(78, 173, 200, 0.25);
+}
+[data-theme="blame"] .song-row.active {
+  background: rgba(78, 173, 200, 0.08) !important;
+  border-left-color: var(--color-accent) !important;
+  box-shadow: inset 3px 0 12px rgba(78, 173, 200, 0.15);
+}
+
+/* Balmain: thin gold left-border, warm tint on hover */
+[data-theme="balmain"] .song-row {
+  border-left: 1px solid transparent;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.06);
+}
+[data-theme="balmain"] .song-row:hover {
+  background: rgba(201, 168, 76, 0.05) !important;
+  border-left-color: rgba(201, 168, 76, 0.50);
+}
+[data-theme="balmain"] .song-row.active {
+  background: rgba(201, 168, 76, 0.10) !important;
+  border-left-color: var(--color-accent) !important;
+}
+
+/* Cyberpunk: left-border indicator */
+[data-theme="cyberpunk"] .song-row {
+  border-left: 2px solid transparent;
+}
+[data-theme="cyberpunk"] .song-row:hover {
+  border-left-color: rgba(232, 240, 17, 0.5);
+  background: rgba(232, 240, 17, 0.04) !important;
+}
+[data-theme="cyberpunk"] .song-row.active {
+  border-left-color: var(--color-accent) !important;
+  background: rgba(232, 240, 17, 0.07) !important;
+}
+
+/* Vaporwave: gradient shimmer on hover */
+[data-theme="vaporwave"] .song-row:hover {
+  background: linear-gradient(90deg, rgba(255, 45, 155, 0.08) 0%, rgba(120, 40, 200, 0.06) 100%) !important;
+}
+
+/* Ocean: subtle highlight */
+[data-theme="ocean"] .song-row:hover {
+  background: rgba(34, 211, 238, 0.07) !important;
+}
+
+/* Minimal: no hover background, just border */
+[data-theme="minimal"] .song-row:hover {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Forest: earthy hover */
+[data-theme="forest"] .song-row:hover {
+  background: rgba(74, 222, 128, 0.06) !important;
+}
+
+/* Ember: warm hover */
+[data-theme="ember"] .song-row:hover {
+  background: rgba(249, 115, 22, 0.07) !important;
+}
+
+/* ══ ALBUM & ARTIST CARDS ═══════════════════════════════════════════ */
+/* Sakura: extra glow + scale on album card hover */
+[data-theme="anime"] .album-grid-card:hover {
+  box-shadow: 0 8px 32px rgba(255, 110, 180, 0.25);
+}
+
+/* Cyberpunk: sharp border highlight */
+[data-theme="cyberpunk"] .album-grid-card {
+  border: 1px solid rgba(232, 240, 17, 0.20);
+}
+[data-theme="cyberpunk"] .album-grid-card:hover {
+  border-color: rgba(232, 240, 17, 0.60);
+  box-shadow: 0 0 20px rgba(232, 240, 17, 0.15);
+}
+
+/* Goth: dark crimson border, deep shadow on cards */
+[data-theme="goth"] .album-grid-card {
+  border: 1px solid rgba(120, 30, 90, 0.20);
+}
+[data-theme="goth"] .album-grid-card:hover {
+  border-color: rgba(155, 27, 58, 0.55);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(155, 27, 58, 0.15);
+}
+
+/* Rambo: military green border on album cards */
+[data-theme="rambo"] .album-grid-card {
+  border: 1px solid rgba(100, 130, 50, 0.20);
+}
+[data-theme="rambo"] .album-grid-card:hover {
+  border-color: rgba(139, 32, 32, 0.50);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(139, 32, 32, 0.15);
+}
+
+/* Blame!: no-radius, cold beam border */
+[data-theme="blame"] .album-grid-card {
+  border: 1px solid rgba(78, 173, 200, 0.12);
+}
+[data-theme="blame"] .album-grid-card:hover {
+  border-color: rgba(78, 173, 200, 0.50);
+  box-shadow: 0 0 24px rgba(78, 173, 200, 0.15), inset 0 0 0 1px rgba(78, 173, 200, 0.20);
+}
+
+/* Balmain: thin gold border */
+[data-theme="balmain"] .album-grid-card {
+  border: 1px solid rgba(201, 168, 76, 0.18);
+}
+[data-theme="balmain"] .album-grid-card:hover {
+  border-color: rgba(201, 168, 76, 0.55);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.12);
+}
+
+/* ══ HOME HERO GRADIENT CLASS ═══════════════════════════════════════ */
+.home-hero-bg {
+  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-via) 60%, transparent 100%);
+}
+
+/* ══ SIDEBAR ════════════════════════════════════════════════════════ */
+/* Cyberpunk: bright accent on sidebar logo */
+[data-theme="cyberpunk"] .sidebar {
+  border-right-color: rgba(232, 240, 17, 0.25);
+}
+/* Sakura: soft pink sidebar border */
+[data-theme="anime"] .sidebar {
+  border-right-color: rgba(255, 110, 180, 0.25);
+}
+/* Goth: deep violet sidebar border */
+[data-theme="goth"] .sidebar {
+  border-right-color: rgba(120, 30, 90, 0.22);
+}
+
+/* Rambo: jungle olive sidebar border */
+[data-theme="rambo"] .sidebar {
+  border-right-color: rgba(100, 130, 50, 0.25);
+}
+
+/* Blame!: cold beam sidebar border */
+[data-theme="blame"] .sidebar {
+  border-right-color: rgba(78, 173, 200, 0.14);
+}
+
+/* Balmain: thin gold sidebar border */
+[data-theme="balmain"] .sidebar {
+  border-right-color: rgba(201, 168, 76, 0.18);
+}
+
+/* ══ STATS PAGE ═════════════════════════════════════════════════════ */
+.stats-chart-bar {
+  background: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.stats-chart-bar-peak {
+  background: var(--color-accent);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.stats-progress-bar {
+  background: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+/* ══ HOME WEEKLY BARS ═══════════════════════════════════════════════ */
+.home-week-bar {
+  background: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+/* ══ NOW PLAYING PLAY BUTTON ════════════════════════════════════════ */
+.np-play-btn {
+  background: var(--color-accent);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--color-accent) 40%, transparent);
+  transition: filter 200ms ease, transform 200ms ease;
+}
+.np-play-btn:hover {
+  filter: brightness(1.1);
+}
+.np-play-btn:active {
+  transform: scale(0.95);
 }

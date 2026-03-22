@@ -9,6 +9,8 @@ import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import AddToPlaylist from '../components/AddToPlaylist'
 import LazyCover from '../components/LazyCover'
+import { useTheme } from '../hooks/useTheme'
+import { useThemeLabels } from '../hooks/useThemeLabels'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -70,8 +72,8 @@ function SongRow({
   return (
     <div
       onClick={onPlay}
-      className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 ${
-        isActive ? 'bg-accent/15' : 'hover:bg-white/5'
+      className={`song-row group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer duration-150 ${
+        isActive ? 'active bg-accent/15' : 'hover:bg-white/5'
       }`}
     >
       {/* Cover / index */}
@@ -125,7 +127,7 @@ function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden aspect-square group cursor-pointer"
+      className="album-grid-card relative rounded-2xl overflow-hidden aspect-square group cursor-pointer transition-all duration-200"
     >
       {/* Cover art */}
       <div className="absolute inset-0 bg-white/5 flex items-center justify-center">
@@ -187,6 +189,7 @@ function AlbumHeader({ album, onBack, onPlay, onShuffle }: {
   album: Album; onBack: () => void
   onPlay: () => void; onShuffle: () => void
 }) {
+  const L = useThemeLabels()
   const year = album.tracks.find(t => t.year)?.year
   return (
     <div className="shrink-0 bg-gradient-to-b from-zinc-800/60 to-transparent px-5 pt-4 pb-5">
@@ -194,7 +197,7 @@ function AlbumHeader({ album, onBack, onPlay, onShuffle }: {
         onClick={onBack}
         className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors mb-4"
       >
-        <ChevronLeft className="w-3.5 h-3.5" /> Albums
+        <ChevronLeft className="w-3.5 h-3.5" /> {L.navAlbums}
       </button>
       <div className="flex items-end gap-4">
         {/* Cover */}
@@ -237,13 +240,14 @@ function ArtistHeader({ artist, onBack, onPlay, onShuffle }: {
   artist: Artist; onBack: () => void
   onPlay: () => void; onShuffle: () => void
 }) {
+  const L = useThemeLabels()
   return (
     <div className="shrink-0 bg-gradient-to-b from-zinc-800/60 to-transparent px-5 pt-4 pb-5">
       <button
         onClick={onBack}
         className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors mb-4"
       >
-        <ChevronLeft className="w-3.5 h-3.5" /> Artists
+        <ChevronLeft className="w-3.5 h-3.5" /> {L.navArtists}
       </button>
       <div className="flex items-end gap-4">
         {/* Avatar */}
@@ -339,6 +343,714 @@ function VirtualSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
+// ── Blame! Netsphere scanner ────────────────────────────────────────────────────
+
+function toHex(n: number): string {
+  return n.toString(16).toUpperCase().padStart(4, '0')
+}
+
+function BlameNetscanner({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 56,
+    overscan: 8,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto" style={{ fontFamily: '"Space Mono", monospace', background: '#020204' }}>
+
+      {/* Netsphere header */}
+      <div className="sticky top-0 z-10 px-4 py-2 flex items-center justify-between"
+        style={{
+          borderBottom: '1px solid rgba(78,173,200,0.18)',
+          background: '#020204',
+        }}>
+        <div className="flex items-center gap-3">
+          <span className="text-[9px] font-bold tracking-[0.22em] uppercase" style={{ color: 'rgba(78,173,200,0.5)' }}>
+            NETSPHERE DIRECTORY
+          </span>
+          <span className="text-[9px]" style={{ color: 'rgba(78,173,200,0.25)' }}>
+            /STRATA/AUDIO/{tracks.length.toString(16).toUpperCase().padStart(4,'0')} RECORDS
+          </span>
+        </div>
+        <span className="text-[9px] tabular-nums" style={{ color: 'rgba(78,173,200,0.25)' }}>
+          {tracks.length} NODES
+        </span>
+      </div>
+
+      {/* Column labels */}
+      <div className="flex items-center gap-4 px-4 py-1.5"
+        style={{
+          borderBottom: '1px solid rgba(78,173,200,0.08)',
+          background: 'rgba(78,173,200,0.02)',
+        }}>
+        <span className="w-14 shrink-0 text-[8px] tracking-widest uppercase" style={{ color: 'rgba(78,173,200,0.35)' }}>ADDR</span>
+        <span className="flex-1 text-[8px] tracking-widest uppercase" style={{ color: 'rgba(78,173,200,0.35)' }}>SIGNAL_PATH</span>
+        <span className="w-32 shrink-0 hidden sm:block text-[8px] tracking-widest uppercase" style={{ color: 'rgba(78,173,200,0.35)' }}>ORIGIN</span>
+        <span className="w-12 shrink-0 text-right text-[8px] tracking-widest uppercase" style={{ color: 'rgba(78,173,200,0.35)' }}>CYCLE</span>
+      </div>
+
+      {/* Rows */}
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(item => {
+          const track = tracks[item.index]
+          const isActive = playerTrack?.path === track.path
+          const addr = `0x${toHex(item.index)}`
+
+          return (
+            <div
+              key={track.path}
+              style={{
+                position: 'absolute', top: 0, left: 0,
+                width: '100%', height: item.size,
+                transform: `translateY(${item.start}px)`,
+              }}
+            >
+              <div
+                onClick={() => onPlay(track, tracks)}
+                className="flex items-center gap-4 px-4 h-full cursor-pointer group"
+                style={{
+                  borderLeft: isActive
+                    ? '3px solid #4EADC8'
+                    : '3px solid transparent',
+                  borderBottom: '1px solid rgba(78,173,200,0.04)',
+                  background: isActive
+                    ? 'linear-gradient(90deg, rgba(78,173,200,0.10) 0%, rgba(78,173,200,0.02) 40%, transparent 100%)'
+                    : undefined,
+                  transition: 'background 120ms ease, border-left-color 120ms ease',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.background = 'rgba(78,173,200,0.04)'
+                    el.style.borderLeftColor = 'rgba(78,173,200,0.25)'
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.background = ''
+                    el.style.borderLeftColor = 'transparent'
+                  }
+                }}
+              >
+                {/* Address */}
+                <span className="w-14 shrink-0 text-[10px] tabular-nums font-bold"
+                  style={{
+                    color: isActive ? '#4EADC8' : 'rgba(78,173,200,0.30)',
+                    textShadow: isActive ? '0 0 8px rgba(78,173,200,0.60)' : undefined,
+                  }}>
+                  {isActive ? (isPlaying ? '▶ LIVE' : '‖ HALT') : addr}
+                </span>
+
+                {/* Signal path (title) */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold truncate"
+                    style={{
+                      color: isActive ? '#8DD4EA' : '#B4CDD8',
+                      letterSpacing: '0.04em',
+                      textShadow: isActive ? '0 0 12px rgba(78,173,200,0.40)' : undefined,
+                    }}>
+                    {(track.title || track.path.split('/').pop() || '').toUpperCase()}
+                  </p>
+                  {track.album && (
+                    <p className="text-[9px] truncate mt-0.5" style={{ color: 'rgba(78,173,200,0.28)', letterSpacing: '0.06em' }}>
+                      //{track.album.toUpperCase()}
+                    </p>
+                  )}
+                </div>
+
+                {/* Origin (artist) */}
+                <span className="w-32 shrink-0 hidden sm:block text-[10px] truncate"
+                  style={{ color: isActive ? 'rgba(78,173,200,0.65)' : 'rgba(78,173,200,0.28)', letterSpacing: '0.04em' }}>
+                  {(track.artist || '---').toUpperCase()}
+                </span>
+
+                {/* Cycle (duration) */}
+                <span className="w-12 shrink-0 text-right text-[10px] tabular-nums"
+                  style={{ color: isActive ? 'rgba(78,173,200,0.70)' : 'rgba(78,173,200,0.25)' }}>
+                  {track.duration > 0 ? formatDuration(track.duration) : '--:--'}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Goth grimoire — dark tome of souls ─────────────────────────────────────────
+
+// Roman numeral converter (I–XII then fallback to arabic)
+function toRoman(n: number): string {
+  if (n <= 0 || n > 3999) return String(n)
+  const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1]
+  const syms = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I']
+  let result = ''
+  let num = n
+  for (let i = 0; i < vals.length; i++) {
+    while (num >= vals[i]) { result += syms[i]; num -= vals[i] }
+  }
+  return result
+}
+
+function GrimoireSongList({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 64,
+    overscan: 8,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto"
+      style={{ background: '#060308', fontFamily: '"Cinzel",Georgia,serif' }}>
+
+      {/* Grimoire header */}
+      <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3"
+        style={{ background: 'rgba(6,3,8,0.97)', borderBottom: '1px solid rgba(120,30,90,0.22)' }}>
+        <div className="flex items-center gap-4">
+          <span className="text-[8px] tracking-[0.28em] uppercase" style={{ color: 'rgba(155,27,58,0.55)' }}>
+            ✦ Liber Musicae ✦
+          </span>
+          <span className="text-[8px] tracking-widest" style={{ color: 'rgba(120,30,90,0.40)' }}>
+            {tracks.length} Souls Recorded
+          </span>
+        </div>
+        <span className="text-[8px] tracking-[0.20em] uppercase" style={{ color: 'rgba(155,27,58,0.35)' }}>
+          Anno Domini MMXXV
+        </span>
+      </div>
+
+      {/* Ornamental divider */}
+      <div className="flex items-center gap-2 px-6 py-2" style={{ borderBottom: '1px solid rgba(120,30,90,0.12)' }}>
+        <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(155,27,58,0.25), transparent)' }} />
+        <span className="text-[10px]" style={{ color: 'rgba(155,27,58,0.30)' }}>✦</span>
+        <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(155,27,58,0.25), transparent)' }} />
+      </div>
+
+      {/* Soul entries */}
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(item => {
+          const track = tracks[item.index]
+          const isActive = playerTrack?.path === track.path
+          const roman = toRoman(item.index + 1)
+
+          return (
+            <div
+              key={track.path}
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: item.size, transform: `translateY(${item.start}px)` }}
+            >
+              <div
+                onClick={() => onPlay(track, tracks)}
+                className="flex items-center gap-4 px-6 h-full cursor-pointer"
+                style={{
+                  borderBottom: isActive
+                    ? '1px solid rgba(155,27,58,0.25)'
+                    : '1px solid rgba(120,30,90,0.07)',
+                  background: isActive
+                    ? 'radial-gradient(ellipse at left, rgba(155,27,58,0.12) 0%, transparent 70%)'
+                    : undefined,
+                  transition: 'background 200ms ease',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(90,20,80,0.08)'
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) (e.currentTarget as HTMLElement).style.background = ''
+                }}
+              >
+                {/* Roman numeral */}
+                <div className="w-10 shrink-0 text-right">
+                  {isActive ? (
+                    <span className="text-xs" style={{ color: '#9B1B3A', textShadow: '0 0 10px rgba(155,27,58,0.5)' }}>
+                      {isPlaying ? '♪' : '‖'}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] tabular-nums" style={{ color: 'rgba(120,30,90,0.40)' }}>
+                      {roman}
+                    </span>
+                  )}
+                </div>
+
+                {/* Thin ornamental separator */}
+                <div className="w-px h-8 shrink-0" style={{ background: isActive ? 'rgba(155,27,58,0.35)' : 'rgba(120,30,90,0.15)' }} />
+
+                {/* Title + album */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold truncate tracking-widest"
+                    style={{
+                      color: isActive ? '#C0B0D0' : '#8A7A9A',
+                      textShadow: isActive ? '0 0 12px rgba(155,27,58,0.25)' : undefined,
+                      letterSpacing: '0.10em',
+                    }}>
+                    {(track.title || track.path.split('/').pop() || '').toUpperCase()}
+                  </p>
+                  {track.album && (
+                    <p className="text-[9px] truncate mt-0.5 tracking-widest" style={{ color: 'rgba(120,30,90,0.40)', letterSpacing: '0.12em' }}>
+                      {track.album.toUpperCase()}
+                    </p>
+                  )}
+                </div>
+
+                {/* Artist */}
+                <span className="w-32 shrink-0 hidden sm:block text-[10px] truncate tracking-wider"
+                  style={{ color: isActive ? 'rgba(192,176,208,0.55)' : 'rgba(120,30,90,0.35)', letterSpacing: '0.08em' }}>
+                  {(track.artist || '—').toUpperCase()}
+                </span>
+
+                {/* Duration */}
+                <span className="w-10 shrink-0 text-right text-[10px] tabular-nums"
+                  style={{ color: isActive ? 'rgba(155,27,58,0.75)' : 'rgba(120,30,90,0.28)', fontVariantNumeric: 'tabular-nums' }}>
+                  {track.duration > 0 ? formatDuration(track.duration) : '—'}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Closing ornament at end */}
+        <div className="flex items-center justify-center gap-3 py-6"
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+          <div className="flex-1 h-px mx-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(155,27,58,0.18), transparent)' }} />
+          <span className="text-xs" style={{ color: 'rgba(155,27,58,0.22)' }}>✦ Finis ✦</span>
+          <div className="flex-1 h-px mx-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(155,27,58,0.18), transparent)' }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Rambo tactical mission briefing ────────────────────────────────────────────
+
+function TacticalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 58,
+    overscan: 8,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto" style={{ background: '#040C03', fontFamily: '"Rajdhani",system-ui,sans-serif' }}>
+
+      {/* Mission header */}
+      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2"
+        style={{ background: '#040C03', borderBottom: '1px solid rgba(100,130,50,0.20)' }}>
+        <div className="flex items-center gap-3">
+          <span className="text-[9px] font-bold tracking-[0.20em] uppercase" style={{ color: 'rgba(100,130,50,0.60)' }}>
+            MISSION DOSSIER
+          </span>
+          <span className="text-[9px]" style={{ color: 'rgba(100,130,50,0.30)' }}>
+            ▸ {tracks.length} OBJECTIVES LOADED
+          </span>
+        </div>
+        <span className="text-[9px] tabular-nums font-bold tracking-wider" style={{ color: 'rgba(139,32,32,0.50)' }}>
+          ◆ ACTIVE
+        </span>
+      </div>
+
+      {/* Column labels */}
+      <div className="flex items-center gap-3 px-4 py-1.5"
+        style={{ borderBottom: '1px solid rgba(100,130,50,0.08)', background: 'rgba(80,100,40,0.05)' }}>
+        <span className="w-14 shrink-0 text-[8px] tracking-widest uppercase" style={{ color: 'rgba(100,130,50,0.40)' }}>ID</span>
+        <span className="flex-1 text-[8px] tracking-widest uppercase" style={{ color: 'rgba(100,130,50,0.40)' }}>OBJECTIVE</span>
+        <span className="w-28 shrink-0 hidden sm:block text-[8px] tracking-widest uppercase" style={{ color: 'rgba(100,130,50,0.40)' }}>OPERATIVE</span>
+        <span className="w-12 shrink-0 text-right text-[8px] tracking-widest uppercase" style={{ color: 'rgba(100,130,50,0.40)' }}>DURATION</span>
+      </div>
+
+      {/* Mission rows */}
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(item => {
+          const track = tracks[item.index]
+          const isActive = playerTrack?.path === track.path
+          const missionId = `OBJ-${String(item.index + 1).padStart(3, '0')}`
+
+          return (
+            <div
+              key={track.path}
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: item.size, transform: `translateY(${item.start}px)` }}
+            >
+              <div
+                onClick={() => onPlay(track, tracks)}
+                className="flex items-center gap-3 px-4 h-full cursor-pointer"
+                style={{
+                  borderLeft: isActive ? '3px solid #8B2020' : '3px solid transparent',
+                  borderBottom: '1px solid rgba(100,130,50,0.05)',
+                  background: isActive
+                    ? 'linear-gradient(90deg, rgba(139,32,32,0.10) 0%, rgba(139,32,32,0.03) 40%, transparent 100%)'
+                    : undefined,
+                  transition: 'background 150ms ease, border-left-color 150ms ease',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(80,100,40,0.07)'
+                    ;(e.currentTarget as HTMLElement).style.borderLeftColor = 'rgba(139,32,32,0.35)'
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.background = ''
+                    ;(e.currentTarget as HTMLElement).style.borderLeftColor = 'transparent'
+                  }
+                }}
+              >
+                {/* Mission ID */}
+                <div className="w-14 shrink-0">
+                  {isActive ? (
+                    <span className="text-[10px] font-bold" style={{ color: '#8B2020', textShadow: '0 0 8px rgba(139,32,32,0.5)' }}>
+                      {isPlaying ? '► EXEC' : '‖ HALT'}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold tabular-nums" style={{ color: 'rgba(100,130,50,0.40)' }}>
+                      {missionId}
+                    </span>
+                  )}
+                </div>
+
+                {/* Objective / title */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold truncate tracking-wide"
+                    style={{
+                      color: isActive ? '#D4C8A0' : '#B0A880',
+                      textShadow: isActive ? '0 0 10px rgba(139,32,32,0.30)' : undefined,
+                    }}>
+                    {(track.title || track.path.split('/').pop() || '').toUpperCase()}
+                  </p>
+                  {track.album && (
+                    <p className="text-[9px] truncate mt-0.5 tracking-widest" style={{ color: 'rgba(100,130,50,0.35)' }}>
+                      {track.album.toUpperCase()}
+                    </p>
+                  )}
+                </div>
+
+                {/* Operative / artist */}
+                <span className="w-28 shrink-0 hidden sm:block text-[11px] truncate font-semibold tracking-wide"
+                  style={{ color: isActive ? 'rgba(212,200,160,0.70)' : 'rgba(100,130,50,0.45)' }}>
+                  {(track.artist || '---').toUpperCase()}
+                </span>
+
+                {/* Duration */}
+                <span className="w-12 shrink-0 text-right text-[11px] tabular-nums font-bold"
+                  style={{ color: isActive ? 'rgba(139,32,32,0.80)' : 'rgba(100,130,50,0.30)' }}>
+                  {track.duration > 0 ? formatDuration(track.duration) : '--:--'}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Sakura song list (kawaii numbered 2-col grid) ─────────────────────────────
+
+function SakuraSongList({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="grid grid-cols-2 gap-2 p-3 pb-8">
+        {tracks.slice(0, 400).map((track, i) => {
+          const isActive = playerTrack?.path === track.path
+          return (
+            <button
+              key={track.path}
+              onClick={() => onPlay(track, tracks)}
+              className="flex items-center gap-2.5 p-2.5 text-left cursor-pointer transition-all duration-200 group"
+              style={{
+                borderRadius: 'var(--radius-lg)',
+                background: isActive
+                  ? 'color-mix(in srgb, var(--color-accent) 14%, transparent)'
+                  : 'color-mix(in srgb, var(--color-accent) 4%, var(--color-surface))',
+                border: `1px solid ${isActive ? 'color-mix(in srgb, var(--color-accent) 40%, transparent)' : 'var(--color-border)'}`,
+                boxShadow: isActive ? 'var(--shadow-glow)' : undefined,
+              }}
+            >
+              {/* Pill number */}
+              <span
+                className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                style={{
+                  background: isActive ? 'var(--color-accent)' : 'color-mix(in srgb, var(--color-accent) 20%, transparent)',
+                  color: isActive ? '#fff' : 'var(--color-accent)',
+                }}
+              >
+                {isActive && isPlaying ? '♪' : i + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold truncate" style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                  {track.title || track.path.split('/').pop()}
+                </p>
+                <p className="text-[10px] truncate mt-0.5" style={{ color: 'var(--color-muted)' }}>
+                  {track.artist || 'Unknown'}
+                </p>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Vaporwave song list (retro cassette-side style) ────────────────────────────
+
+const CASSETTE_SIDES = ['A', 'B', 'C', 'D', 'E', 'F']
+function getCasseteLabel(i: number) {
+  return `${CASSETTE_SIDES[Math.floor(i / 9) % CASSETTE_SIDES.length]}${(i % 9) + 1}`
+}
+
+function VaporwaveSongList({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 8,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto">
+      {/* Retro header */}
+      <div
+        className="flex items-center gap-4 px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b sticky top-0 z-10"
+        style={{
+          background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 22%, var(--color-bg)), var(--color-bg))',
+          borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
+          color: 'var(--color-accent)',
+          fontFamily: 'monospace',
+        }}
+      >
+        <span className="w-10 shrink-0">TAPE</span>
+        <span className="flex-1">TITLE</span>
+        <span className="w-28 shrink-0 hidden sm:block">ARTIST</span>
+        <span className="w-12 shrink-0 text-right">TIME</span>
+      </div>
+
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(item => {
+          const track = tracks[item.index]
+          const isActive = playerTrack?.path === track.path
+          return (
+            <div
+              key={track.path}
+              style={{
+                position: 'absolute', top: 0, left: 0, width: '100%',
+                height: item.size, transform: `translateY(${item.start}px)`,
+              }}
+            >
+              <div
+                onClick={() => onPlay(track, tracks)}
+                className="flex items-center gap-4 px-4 h-full cursor-pointer group"
+                style={{
+                  background: isActive
+                    ? 'linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent)'
+                    : undefined,
+                  borderLeft: `3px solid ${isActive ? 'var(--color-accent)' : 'transparent'}`,
+                  fontFamily: 'monospace',
+                }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 6%, transparent), transparent)' }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '' }}
+              >
+                <span className="w-10 shrink-0 text-xs font-bold"
+                  style={{ color: isActive ? 'var(--color-accent)' : 'color-mix(in srgb, var(--color-accent) 50%, transparent)' }}>
+                  {isActive ? (isPlaying ? '▶' : '‖') : getCasseteLabel(item.index)}
+                </span>
+                <span className="flex-1 text-xs truncate font-medium" style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                  {track.title || track.path.split('/').pop()}
+                </span>
+                <span className="w-28 shrink-0 hidden sm:block text-xs truncate" style={{ color: 'var(--color-muted)' }}>
+                  {track.artist || '---'}
+                </span>
+                <span className="w-12 shrink-0 text-right text-xs tabular-nums" style={{ color: 'var(--color-muted)' }}>
+                  {track.duration > 0 ? formatDuration(track.duration) : '--:--'}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Terminal song list (cyberpunk) ─────────────────────────────────────────────
+
+function TerminalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 48,
+    overscan: 8,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto font-mono">
+      {/* Table header */}
+      <div className="flex items-center gap-4 px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b sticky top-0 z-10"
+        style={{ color: 'var(--color-accent)', borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)', background: 'var(--color-bg)' }}>
+        <span className="w-8 shrink-0">#</span>
+        <span className="flex-1">TITLE</span>
+        <span className="w-28 shrink-0 hidden sm:block">ARTIST</span>
+        <span className="w-12 shrink-0 text-right">TIME</span>
+      </div>
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(item => {
+          const track = tracks[item.index]
+          const isActive = playerTrack?.path === track.path
+          return (
+            <div
+              key={track.path}
+              style={{
+                position: 'absolute', top: 0, left: 0, width: '100%',
+                height: item.size, transform: `translateY(${item.start}px)`,
+              }}
+            >
+              <div
+                onClick={() => onPlay(track, tracks)}
+                className="flex items-center gap-4 px-4 h-full cursor-pointer group transition-all duration-100"
+                style={{
+                  borderLeft: isActive
+                    ? '2px solid var(--color-accent)'
+                    : '2px solid transparent',
+                  background: isActive
+                    ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
+                    : undefined,
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--color-accent) 4%, transparent)'
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) (e.currentTarget as HTMLElement).style.background = ''
+                }}
+              >
+                <span className="w-8 shrink-0 text-xs tabular-nums"
+                  style={{ color: isActive ? 'var(--color-accent)' : 'color-mix(in srgb, var(--color-accent) 40%, transparent)' }}>
+                  {isActive
+                    ? (isPlaying ? '▶' : '‖')
+                    : String(item.index + 1).padStart(2, '0')}
+                </span>
+                <span className={`flex-1 text-xs truncate font-semibold ${isActive ? '' : 'text-zinc-200'}`}
+                  style={isActive ? { color: 'var(--color-accent)' } : {}}>
+                  {track.title || track.path.split('/').pop()}
+                </span>
+                <span className="w-28 shrink-0 hidden sm:block text-xs truncate text-zinc-500">
+                  {track.artist || '---'}
+                </span>
+                <span className="w-12 shrink-0 text-right text-xs tabular-nums text-zinc-600">
+                  {track.duration > 0 ? formatDuration(track.duration) : '--:--'}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Minimal song list (minimal theme) ─────────────────────────────────────────
+
+function MinimalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
+  tracks: Track[]
+  playerTrack: Track | null
+  isPlaying: boolean
+  onPlay: (track: Track, queue: Track[]) => void
+}) {
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 52,
+    overscan: 8,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto">
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(item => {
+          const track = tracks[item.index]
+          const isActive = playerTrack?.path === track.path
+          return (
+            <div
+              key={track.path}
+              style={{
+                position: 'absolute', top: 0, left: 0, width: '100%',
+                height: item.size, transform: `translateY(${item.start}px)`,
+              }}
+            >
+              <div
+                onClick={() => onPlay(track, tracks)}
+                className="flex items-center gap-4 px-5 h-full cursor-pointer group border-b border-white/[0.04] transition-opacity duration-150"
+                style={{ opacity: isActive ? 1 : 0.55 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.opacity = '0.55' }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium truncate ${isActive ? '' : 'text-zinc-100'}`}
+                    style={isActive ? { color: 'var(--color-accent)' } : {}}>
+                    {track.title || track.path.split('/').pop()}
+                  </p>
+                  <p className="text-xs text-zinc-500 truncate mt-0.5">
+                    {track.artist || 'Unknown'}
+                    {track.album ? <span className="text-zinc-700"> — {track.album}</span> : null}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  {isActive && (
+                    <span className="text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color: 'var(--color-accent)' }}>
+                      {isPlaying ? 'playing' : 'paused'}
+                    </span>
+                  )}
+                  {track.duration > 0 && (
+                    <span className="text-xs text-zinc-600 tabular-nums">{formatDuration(track.duration)}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function PlayerPage({ defaultTab = 'songs', standalone = false }: { defaultTab?: Tab; standalone?: boolean }) {
@@ -347,6 +1059,8 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
     playerTrack, isPlaying, playTrack, setIsPlaying,
     shuffleOn, toggleShuffle,
   } = useLibraryStore()
+  const { trackLayout } = useTheme()
+  const L = useThemeLabels()
 
   const [tab, setTab] = useState<Tab>(defaultTab)
   const [search, setSearch] = useState('')
@@ -505,7 +1219,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
         {/* Title row */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-zinc-100">
-            {standalone ? (defaultTab === 'albums' ? 'Albums' : defaultTab === 'artists' ? 'Artists' : 'Songs') : 'Library'}
+            {standalone ? (defaultTab === 'albums' ? L.navAlbums : defaultTab === 'artists' ? L.navArtists : L.navSongs) : L.navSongs}
           </h1>
           <button
             onClick={() => musicFolders.length > 0 && scanAllFolders(musicFolders)}
@@ -529,7 +1243,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
                     : 'bg-white/8 text-zinc-400 hover:text-zinc-200 hover:bg-white/12'
                 }`}
               >
-                {t === 'songs' ? 'Songs' : t === 'albums' ? 'Albums' : 'Artists'}
+                {t === 'songs' ? L.navSongs : t === 'albums' ? L.navAlbums : L.navArtists}
               </button>
             ))}
           </div>
@@ -630,7 +1344,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
               />
               <div className="px-3 pb-4">
                 {drillTracks.length === 0
-                  ? <Empty message="No songs found" />
+                  ? <Empty message={L.noSongsFound} />
                   : drillTracks.map((track) => (
                     <SongRow
                       key={track.path}
@@ -664,7 +1378,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
               />
               <div className="px-3 pb-4">
                 {drillTracks.length === 0
-                  ? <Empty message="No songs found" />
+                  ? <Empty message={L.noSongsFound} />
                   : drillTracks.map((track) => (
                     <SongRow
                       key={track.path}
@@ -680,22 +1394,31 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
           )
         })()}
 
-        {/* Songs tab — virtualized */}
+        {/* Songs tab */}
         {!inDrill && tab === 'songs' && (
           sorted.length === 0
-            ? <Empty message={isScanning ? 'Scanning…' : 'No songs found'} />
-            : <VirtualSongList
-                tracks={sorted}
-                playerTrack={playerTrack}
-                isPlaying={isPlaying}
-                onPlay={handlePlayTrack}
-              />
+            ? <Empty message={isScanning ? L.scanning : L.noSongsFound} />
+            : trackLayout === 'grimoire'
+              ? <GrimoireSongList tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
+            : trackLayout === 'tactical'
+              ? <TacticalSongList tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
+            : trackLayout === 'blame'
+              ? <BlameNetscanner tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
+              : trackLayout === 'sakura'
+              ? <SakuraSongList tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
+              : trackLayout === 'vaporwave'
+              ? <VaporwaveSongList tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
+              : trackLayout === 'terminal'
+              ? <TerminalSongList tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
+              : trackLayout === 'minimal'
+              ? <MinimalSongList tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
+              : <VirtualSongList tracks={sorted} playerTrack={playerTrack} isPlaying={isPlaying} onPlay={handlePlayTrack} />
         )}
 
         {/* Albums tab */}
         {!inDrill && tab === 'albums' && (
           albums.length === 0
-            ? <Empty message={isScanning ? 'Scanning…' : 'No albums found'} />
+            ? <Empty message={isScanning ? L.scanning : L.noSongsFound} />
             : viewMode === 'grid'
               ? (
                 <div className="grid grid-cols-2 gap-3">
@@ -734,7 +1457,7 @@ export default function PlayerPage({ defaultTab = 'songs', standalone = false }:
         {/* Artists tab */}
         {!inDrill && tab === 'artists' && (
           artists.length === 0
-            ? <Empty message={isScanning ? 'Scanning…' : 'No artists found'} />
+            ? <Empty message={isScanning ? L.scanning : L.noSongsFound} />
             : artists.map((artist) => (
               <ArtistRow
                 key={artist.name}

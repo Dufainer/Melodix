@@ -107,6 +107,15 @@ interface LibraryState {
   setEqPreset: (name: string, bands: number[]) => void
   setEqPanelOpen: (v: boolean) => void
 
+  // Appearance
+  theme: string
+  setTheme: (theme: string) => void
+  themeOverrides: Record<string, Record<string, string>>   // themeId -> cssVar -> value
+  setThemeOverride: (themeId: string, cssVar: string, value: string) => void
+  resetThemeOverrides: (themeId: string) => void
+  iconPacks: Record<string, string>                        // themeId -> packId
+  setIconPack: (themeId: string, packId: string) => void
+
   // Effects
   effectSpeed: number
   effectReverbRoom: number
@@ -286,6 +295,40 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   eqBands: JSON.parse(localStorage.getItem('eqBands') ?? '[0,0,0,0,0,0,0,0,0,0]'),
   eqPreset: localStorage.getItem('eqPreset') ?? 'flat',
   eqPanelOpen: false,
+
+  theme: localStorage.getItem('theme') ?? 'default',
+
+  setTheme: (theme) => {
+    localStorage.setItem('theme', theme)
+    set({ theme })
+  },
+
+  themeOverrides: (() => {
+    try { return JSON.parse(localStorage.getItem('themeOverrides') ?? '{}') } catch { return {} }
+  })(),
+  setThemeOverride: (themeId, cssVar, value) => {
+    const prev = get().themeOverrides
+    const next = { ...prev, [themeId]: { ...(prev[themeId] ?? {}), [cssVar]: value } }
+    localStorage.setItem('themeOverrides', JSON.stringify(next))
+    set({ themeOverrides: next })
+  },
+  resetThemeOverrides: (themeId) => {
+    const prev = get().themeOverrides
+    const next = { ...prev }
+    delete next[themeId]
+    localStorage.setItem('themeOverrides', JSON.stringify(next))
+    set({ themeOverrides: next })
+  },
+
+  iconPacks: (() => {
+    try { return JSON.parse(localStorage.getItem('iconPacks') ?? '{}') } catch { return {} }
+  })(),
+  setIconPack: (themeId, packId) => {
+    const prev = get().iconPacks
+    const next = { ...prev, [themeId]: packId }
+    localStorage.setItem('iconPacks', JSON.stringify(next))
+    set({ iconPacks: next })
+  },
 
   effectSpeed:      Number(localStorage.getItem('effectSpeed') ?? 1),
   effectReverbRoom: Number(localStorage.getItem('effectReverbRoom') ?? 0),

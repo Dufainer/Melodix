@@ -4,6 +4,7 @@ import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import LazyCover from '../components/LazyCover'
 import AddToPlaylist from '../components/AddToPlaylist'
+import { useThemeLabels } from '../hooks/useThemeLabels'
 
 // ── Genre color palette ────────────────────────────────────────────────────────
 
@@ -46,8 +47,8 @@ function SongRow({ track, isActive, isPlaying, onPlay }: {
   return (
     <div
       onClick={onPlay}
-      className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 ${
-        isActive ? 'bg-accent/15' : 'hover:bg-white/5'
+      className={`song-row group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer duration-150 ${
+        isActive ? 'active bg-accent/15' : 'hover:bg-white/5'
       }`}
     >
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 relative bg-white/5 flex items-center justify-center">
@@ -149,6 +150,7 @@ function GenreCard({ genre, onClick }: { genre: Genre; onClick: () => void }) {
 
 function GenreDetail({ genre, onBack }: { genre: Genre; onBack: () => void }) {
   const { playerTrack, isPlaying, playTrack } = useLibraryStore()
+  const L = useThemeLabels()
   const [from, to] = genreGradient(genre.name)
 
   function handlePlayAll() {
@@ -170,7 +172,7 @@ function GenreDetail({ genre, onBack }: { genre: Genre; onBack: () => void }) {
           className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors mb-4"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
-          Genres
+          {L.genresTitle}
         </button>
 
         <div className="flex items-end gap-5">
@@ -235,6 +237,7 @@ export default function GenrePage() {
   const tracks = useLibraryStore(s => s.tracks)
   const [selected, setSelected] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const L = useThemeLabels()
 
   const genres = useMemo<Genre[]>(() => {
     const map = new Map<string, Track[]>()
@@ -266,7 +269,7 @@ export default function GenrePage() {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-600">
         <Music2 className="w-16 h-16 opacity-30" />
-        <p className="text-sm">No tracks loaded</p>
+        <p className="text-sm">{L.genresNoTracks}</p>
       </div>
     )
   }
@@ -276,14 +279,14 @@ export default function GenrePage() {
       {/* Header */}
       <div className="shrink-0 px-6 py-4 border-b border-white/5 flex items-center gap-4">
         <div>
-          <h1 className="text-base font-semibold text-white">Genres</h1>
+          <h1 className="text-base font-semibold text-white">{L.genresTitle}</h1>
           <p className="text-xs text-zinc-500">{genres.length} genres · {tracks.length} tracks</p>
         </div>
         <div className="ml-auto flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 w-52">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search genre..."
+            placeholder={L.genresSearch}
             className="bg-transparent text-sm text-zinc-200 placeholder-zinc-600 outline-none flex-1 min-w-0"
           />
         </div>
@@ -292,7 +295,7 @@ export default function GenrePage() {
       {/* Grid */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {filtered.length === 0 ? (
-          <p className="text-sm text-zinc-600 text-center mt-12">No genres found</p>
+          <p className="text-sm text-zinc-600 text-center mt-12">{L.genresNone}</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filtered.map(genre => (

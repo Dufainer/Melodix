@@ -5,6 +5,7 @@ import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import DailyMixModal from '../components/DailyMixModal'
 import LazyCover from '../components/LazyCover'
+import { useThemeLabels } from '../hooks/useThemeLabels'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -88,6 +89,7 @@ export default function Home() {
   const { tracks, recentlyPlayed, playTrack, likedPaths, playHistory } = useLibraryStore()
   const [dailyMixOpen, setDailyMixOpen] = useState(false)
   const navigate = useNavigate()
+  const L = useThemeLabels()
 
   const weekEvents = useMemo(() => {
     const start = getWeekStart()
@@ -200,8 +202,8 @@ export default function Home() {
 
         {/* ── Your Mix hero ─────────────────────────────────────────── */}
         <div className="relative shrink-0 mx-4 mt-4 rounded-3xl overflow-hidden" style={{ height: 210 }}>
-          {/* Background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-950 via-indigo-950/80 to-[#080c12]" />
+          {/* Background gradient — uses per-theme CSS vars */}
+          <div className="absolute inset-0 home-hero-bg" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
           {/* Floating covers */}
@@ -215,10 +217,10 @@ export default function Home() {
           {/* Content */}
           <div className="relative h-full flex flex-col justify-between px-6 py-5 z-10">
             <div>
-              <p className="text-[10px] font-bold text-violet-300/80 tracking-[0.18em] uppercase mb-1">
-                Today's Mix for you
+              <p className="text-[10px] font-bold tracking-[0.18em] uppercase mb-1" style={{ color: 'var(--color-accent-light)', opacity: 0.85 }}>
+                {L.heroSub}
               </p>
-              <h1 className="text-3xl font-bold text-white leading-tight">Your Mix</h1>
+              <h1 className="text-3xl font-bold text-white leading-tight">{L.heroTitle}</h1>
               {dailyMix.length > 0 && (
                 <p className="text-xs text-zinc-400 mt-1">{dailyMix.length} songs</p>
               )}
@@ -231,7 +233,7 @@ export default function Home() {
                 className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black text-sm font-bold transition-all hover:bg-zinc-200 disabled:opacity-30 shadow-lg"
               >
                 <Play className="w-4 h-4 ml-0.5" />
-                Play
+                {L.playBtn}
               </button>
               <button
                 onClick={handleYourMixShuffle}
@@ -239,7 +241,7 @@ export default function Home() {
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-semibold transition-all disabled:opacity-30 backdrop-blur-sm"
               >
                 <Shuffle className="w-4 h-4" />
-                Shuffle
+                {L.shuffleBtn}
               </button>
             </div>
           </div>
@@ -249,8 +251,8 @@ export default function Home() {
         {recentTracks.length > 0 && (
           <section className="mt-7 shrink-0">
             <div className="flex items-center justify-between px-5 mb-3">
-              <h2 className="text-sm font-bold text-zinc-100">Recently Played</h2>
-              <span className="text-[11px] text-zinc-600">{recentTracks.length} tracks</span>
+              <h2 className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>{L.recentlyPlayed}</h2>
+              <span className="text-[11px]" style={{ color: 'var(--color-muted)' }}>{L.trackCount(recentTracks.length)}</span>
             </div>
             <div className="flex gap-3.5 overflow-x-auto px-5 pb-3 scrollbar-hide">
               {recentTracks.slice(0, 15).map((track) => (
@@ -285,8 +287,8 @@ export default function Home() {
         {recentlyAdded.length > 0 && (
           <section className="mt-7 shrink-0">
             <div className="flex items-center justify-between px-5 mb-3">
-              <h2 className="text-sm font-bold text-zinc-100">Recently Added</h2>
-              <span className="text-[11px] text-zinc-600">{recentlyAdded.length} tracks</span>
+              <h2 className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>{L.recentlyAdded}</h2>
+              <span className="text-[11px]" style={{ color: 'var(--color-muted)' }}>{L.trackCount(recentlyAdded.length)}</span>
             </div>
             <div className="flex gap-3.5 overflow-x-auto px-5 pb-3 scrollbar-hide">
               {recentlyAdded.map((track) => (
@@ -320,17 +322,21 @@ export default function Home() {
         {/* ── Listening Stats card ─────────────────────────────────── */}
         {weekPlays > 0 && (
           <section className="mt-5 px-4">
-            <h2 className="text-sm font-bold text-zinc-100 mb-3">Listening Stats</h2>
+            <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text)' }}>{L.listeningStats}</h2>
             <button
               onClick={() => navigate('/stats')}
-              className="w-full rounded-2xl bg-gradient-to-br from-blue-950/60 to-indigo-950/40 border border-blue-800/20 overflow-hidden text-left hover:border-blue-700/40 transition-all"
+              className="w-full rounded-2xl overflow-hidden text-left transition-all"
+              style={{
+                background: 'color-mix(in srgb, var(--color-accent) 8%, var(--color-surface))',
+                border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)',
+              }}
             >
               {/* Top row */}
               <div className="flex items-start justify-between px-4 pt-4 pb-2">
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
-                    <BarChart2 className="w-3.5 h-3.5 text-blue-400" />
-                    <p className="text-[10px] font-bold text-blue-300/70 uppercase tracking-widest">This Week</p>
+                    <BarChart2 className="w-3.5 h-3.5 text-accent" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--color-accent-light)', opacity: 0.8 }}>This Week</p>
                   </div>
                   <p className="text-3xl font-bold text-white">{fmtBig(weekSecs)}</p>
                 </div>
@@ -360,8 +366,8 @@ export default function Home() {
                 {weekByDay.map((secs, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1">
                     <div
-                      className={`w-full rounded-sm transition-all ${secs > 0 ? 'bg-blue-500/60' : 'bg-white/5'}`}
-                      style={{ height: `${maxWeekDay > 0 ? Math.max(Math.round((secs / maxWeekDay) * 32), secs > 0 ? 4 : 2) : 2}px` }}
+                      className={`w-full transition-all ${secs > 0 ? 'home-week-bar' : 'bg-white/5'}`}
+                      style={{ height: `${maxWeekDay > 0 ? Math.max(Math.round((secs / maxWeekDay) * 32), secs > 0 ? 4 : 2) : 2}px`, borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0' }}
                     />
                     <span className="text-[9px] text-zinc-600">{DAY_LABELS[i]}</span>
                   </div>
@@ -374,8 +380,8 @@ export default function Home() {
         {/* ── Daily Mix card ────────────────────────────────────────── */}
         {dailyMix.length > 0 && (
           <section className="mt-5 px-4 mb-5">
-            <h2 className="text-sm font-bold text-zinc-100 mb-3">Daily Mix</h2>
-            <div className="rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-white/6 overflow-hidden">
+            <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text)' }}>Daily Mix</h2>
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-accent) 6%, var(--color-surface))', border: '1px solid var(--color-border)' }}>
 
               {/* Header */}
               <div className="flex items-center justify-between px-4 pt-4 pb-3">
@@ -388,8 +394,8 @@ export default function Home() {
                   {dailyMix.filter(t => t.coverArt).slice(0, 3).map((track, i) => (
                     <div
                       key={track.path}
-                      className="w-8 h-8 rounded-lg overflow-hidden border-2 border-zinc-950 bg-white/5 shrink-0"
-                      style={{ marginLeft: i === 0 ? 0 : -8, zIndex: 3 - i }}
+                      className="w-8 h-8 rounded-lg overflow-hidden border-2 bg-white/5 shrink-0"
+                      style={{ marginLeft: i === 0 ? 0 : -8, zIndex: 3 - i, borderColor: 'var(--color-surface)' }}
                     >
                       <img src={`data:image/jpeg;base64,${track.coverArt}`} alt="" className="w-full h-full object-cover" />
                     </div>

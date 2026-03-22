@@ -38,3 +38,13 @@ src-tauri/gen/schemas/
 # Package manager locks (keep one, ignore the rest)
 yarn.lock
 pnpm-lock.yaml
+
+# OS
+Thumbs.db
+
+# Cache
+.cache/
+*.tsbuildinfo
+
+# Tauri WIP
+src-tauri/WixTools/

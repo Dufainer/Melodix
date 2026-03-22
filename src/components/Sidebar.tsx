@@ -2,25 +2,27 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Library, Settings, Music2, Disc3, ListMusic, Heart, Mic2, Plus, ListVideo, Pencil, Trash2, BarChart2, Tag, Search } from 'lucide-react'
 import { useLibraryStore } from '../store'
-
-const NAV_ITEMS = [
-  { to: '/', label: 'Home', icon: Music2 },
-  { to: '/player', label: 'Songs', icon: ListMusic },
-  { to: '/albums', label: 'Albums', icon: Disc3 },
-  { to: '/artists', label: 'Artists', icon: Mic2 },
-  { to: '/genres', label: 'Genres', icon: Tag },
-  { to: '/likes', label: 'Likes', icon: Heart },
-  { to: '/stats', label: 'Stats', icon: BarChart2 },
-]
-
-const BOTTOM_ITEMS = [
-  { to: '/library', label: 'Tag Editor', icon: Library },
-  { to: '/settings', label: 'Settings', icon: Settings },
-]
+import { useThemeLabels } from '../hooks/useThemeLabels'
 
 export default function Sidebar() {
   const navigate = useNavigate()
   const { playlists, createPlaylist, deletePlaylist, renamePlaylist } = useLibraryStore()
+  const L = useThemeLabels()
+
+  const NAV_ITEMS = [
+    { to: '/', label: L.navHome, icon: Music2 },
+    { to: '/player', label: L.navSongs, icon: ListMusic },
+    { to: '/albums', label: L.navAlbums, icon: Disc3 },
+    { to: '/artists', label: L.navArtists, icon: Mic2 },
+    { to: '/genres', label: L.navGenres, icon: Tag },
+    { to: '/likes', label: L.navLikes, icon: Heart },
+    { to: '/stats', label: L.navStats, icon: BarChart2 },
+  ]
+
+  const BOTTOM_ITEMS = [
+    { to: '/library', label: L.navTagEditor, icon: Library },
+    { to: '/settings', label: 'Settings', icon: Settings },
+  ]
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [creatingNew, setCreatingNew] = useState(false)
@@ -71,7 +73,7 @@ export default function Sidebar() {
         className="mx-3 mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/8 text-zinc-500 hover:text-zinc-300 transition-all text-xs"
       >
         <Search className="w-3.5 h-3.5 shrink-0" />
-        <span className="flex-1 text-left">Search library…</span>
+        <span className="flex-1 text-left">{L.navSearchPlaceholder}</span>
         <kbd className="text-[10px] bg-white/5 border border-white/10 rounded px-1.5 py-0.5 shrink-0">⌃K</kbd>
       </button>
 
@@ -88,7 +90,7 @@ export default function Sidebar() {
       {/* Playlists section */}
       <div className="mt-5 px-3 flex-1 min-h-0 flex flex-col">
         <div className="flex items-center justify-between px-1 mb-2 shrink-0">
-          <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Playlists</span>
+          <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">{L.navPlaylists}</span>
           <button
             onClick={handleCreate}
             className="w-5 h-5 rounded flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-white/8 transition-all"
@@ -115,7 +117,7 @@ export default function Sidebar() {
           )}
 
           {playlists.length === 0 && !creatingNew && (
-            <p className="text-xs text-zinc-700 px-3 py-2">No playlists yet</p>
+            <p className="text-xs text-zinc-700 px-3 py-2">{L.navNoPlaylists}</p>
           )}
 
           {playlists.map((pl) => (
@@ -197,7 +199,7 @@ export default function Sidebar() {
             {label}
           </NavLink>
         ))}
-        <p className="text-xs text-zinc-700 px-3 pt-2">Melodix v0.1.0</p>
+        <p className="text-xs text-zinc-700 px-3 pt-2">Melodix v0.2.0</p>
       </nav>
     </aside>
   )
