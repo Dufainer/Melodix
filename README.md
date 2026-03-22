@@ -2,7 +2,7 @@
 
 > Native desktop music player and audio metadata manager — built with Tauri v2, React 19, and Rust.
 
-**v0.2.0** · Linux (x86_64) · Tauri v2 · MIT
+**v0.3.0-beta.3** · Linux (x86_64) · Tauri v2 · MIT
 
 ---
 
@@ -185,8 +185,8 @@ npm run tauri build
 
 Output (Linux):
 ```
-src-tauri/target/release/bundle/appimage/melodix_0.2.0_amd64.AppImage
-src-tauri/target/release/bundle/deb/melodix_0.2.0_amd64.deb
+src-tauri/target/release/bundle/appimage/melodix_0.3.0-beta.3_amd64.AppImage
+src-tauri/target/release/bundle/deb/melodix_0.3.0-beta.3_amd64.deb
 ```
 
 ### Lint / Format

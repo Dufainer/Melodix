@@ -1,6 +1,6 @@
 [package]
 name = "melodix"
-version = "0.2.0"
+version = "0.3.0-beta.3"
 description = "Melodix – Modern Audio Metadata Manager"
 authors = ["you"]
 edition = "2021"
