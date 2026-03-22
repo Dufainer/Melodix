@@ -8,7 +8,7 @@ use std::io::{Cursor, Read, Seek, SeekFrom};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-// ── 10-band parametric equalizer ───────────────────────────────────────────────
+// 10-band parametric equalizer
 
 pub const NUM_BANDS: usize = 10;
 const CENTER_FREQS: [f64; NUM_BANDS] = [32.0, 64.0, 125.0, 250.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0, 16000.0];
@@ -128,7 +128,7 @@ impl<S: Source<Item = i16>> Source for EqSource<S> {
     fn total_duration(&self)                     -> Option<Duration> { self.inner.total_duration() }
 }
 
-// ── Audio effects: Reverb (Freeverb) + Speed/Pitch ─────────────────────────────
+// Audio effects: Reverb (Freeverb) + Speed/Pitch
 
 #[derive(Clone)]
 pub struct EffectParams {
@@ -289,7 +289,7 @@ impl<S: Source<Item = i16>> Source for EffectsSource<S> {
     fn total_duration(&self)    -> Option<Duration> { self.inner.total_duration() }
 }
 
-// ── Seekable audio source via symphonia directly ───────────────────────────────
+// Seekable audio source via symphonia
 //
 // rodio's ReadSeekSource always returns byte_len() = None, which makes
 // symphonia's FLAC reader return Unseekable. We bypass this by wrapping
@@ -405,7 +405,7 @@ impl Source for SeekSource {
     fn total_duration(&self) -> Option<Duration> { None }
 }
 
-// ── MPRIS Commands ─────────────────────────────────────────────────────────────
+// MPRIS commands
 
 pub enum MprisCmd {
     Metadata {
@@ -423,7 +423,7 @@ pub enum MprisCmd {
     Stopped,
 }
 
-// ── State ──────────────────────────────────────────────────────────────────────
+// State
 
 pub struct AudioState {
     pub handle: OutputStreamHandle,
@@ -538,7 +538,7 @@ pub fn init_audio(app_handle: tauri::AppHandle) -> AudioState {
     }
 }
 
-// ── Commands ──────────────────────────────────────────────────────────────────
+// Commands
 
 #[derive(Serialize)]
 pub struct PlayerState {
@@ -566,7 +566,7 @@ pub fn player_play(
         .map(|d: Duration| d.as_secs_f64())
         .unwrap_or(0.0);
 
-    let eq  = EqSource::new(raw, Arc::clone(&state.eq_bands), Arc::clone(&state.eq_enabled));
+    let eq     = EqSource::new(raw, Arc::clone(&state.eq_bands), Arc::clone(&state.eq_enabled));
     let source = EffectsSource::new(eq, Arc::clone(&state.effect_params));
 
     let sink = Sink::try_new(&state.handle)

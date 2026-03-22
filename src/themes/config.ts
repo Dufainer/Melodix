@@ -1,4 +1,4 @@
-// ── Theme variable definitions (JS source-of-truth, applied via style.setProperty) ──
+// Theme variable definitions (JS source-of-truth, applied via style.setProperty)
 // The CSS [data-theme] blocks in styles.css remain for structural overrides (hover effects, borders etc.)
 // These JS configs control all CSS custom properties (colors, radii, fonts, shadows)
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Library, Settings, Music2, Disc3, ListMusic, Heart, Mic2, Plus, ListVideo, Pencil, Trash2, BarChart2, Tag, Search } from 'lucide-react'
 import { useLibraryStore } from '../store'
-import { useThemeLabels } from '../hooks/useThemeLabels'
+import { useThemeLabels } from '../hooks/useTheme'
 
 export default function Sidebar() {
   const navigate = useNavigate()

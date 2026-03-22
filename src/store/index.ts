@@ -113,6 +113,8 @@ interface LibraryState {
   themeOverrides: Record<string, Record<string, string>>   // themeId -> cssVar -> value
   setThemeOverride: (themeId: string, cssVar: string, value: string) => void
   resetThemeOverrides: (themeId: string) => void
+  performanceMode: boolean
+  setPerformanceMode: (v: boolean) => void
   iconPacks: Record<string, string>                        // themeId -> packId
   setIconPack: (themeId: string, packId: string) => void
 
@@ -127,6 +129,7 @@ interface LibraryState {
   effectsPanelOpen: boolean
   setEffect: (speed: number, room: number, damp: number, wet: number, e8d: boolean, s8d: number, preset: string) => void
   setEffectsPanelOpen: (v: boolean) => void
+
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
@@ -320,6 +323,12 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     set({ themeOverrides: next })
   },
 
+  performanceMode: localStorage.getItem('performanceMode') === 'true',
+  setPerformanceMode: (v) => {
+    localStorage.setItem('performanceMode', String(v))
+    set({ performanceMode: v })
+  },
+
   iconPacks: (() => {
     try { return JSON.parse(localStorage.getItem('iconPacks') ?? '{}') } catch { return {} }
   })(),
@@ -381,6 +390,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     set({ effectSpeed: speed, effectReverbRoom: room, effectReverbDamp: damp, effectReverbWet: wet, effect8d: e8d, effect8dSpeed: s8d, effectPreset: preset })
   },
   setEffectsPanelOpen: (v) => set({ effectsPanelOpen: v }),
+
 
   setQueueOpen: (queueOpen) => set({ queueOpen }),
 

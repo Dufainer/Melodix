@@ -26,7 +26,7 @@ const PRESET_LABELS: Record<string, string> = {
 function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
 function snap(v: number) { return Math.round(v * 2) / 2 }  // snap to 0.5 dB steps
 
-// ── Custom vertical drag slider ────────────────────────────────────────────────
+// Custom vertical drag slider
 function VerticalSlider({
   value, onChange,
 }: { value: number; onChange: (v: number) => void }) {
@@ -102,7 +102,7 @@ function VerticalSlider({
   )
 }
 
-// ── dB scale on the left ───────────────────────────────────────────────────────
+// dB scale on the left
 function DbScale() {
   const marks = [12, 6, 0, -6, -12]
   return (
@@ -125,7 +125,7 @@ function DbScale() {
   )
 }
 
-// ── Main panel ─────────────────────────────────────────────────────────────────
+// Main panel
 export default function EqPanel() {
   const {
     eqPanelOpen, setEqPanelOpen,

@@ -5,12 +5,8 @@ import { save, open } from '@tauri-apps/plugin-dialog'
 import { writeTextFile, readTextFile } from '@tauri-apps/plugin-fs'
 import { useLibraryStore } from '../store'
 import CoverArt from '../components/CoverArt'
+import { formatDuration } from '../utils'
 
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
 
 export default function PlaylistPage() {
   const { id } = useParams<{ id: string }>()

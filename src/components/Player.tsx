@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Heart, ListMusic, Moon, SlidersHorizontal, Wand2 } from 'lucide-react'
+import { formatDuration } from '../utils'
 import { useLibraryStore } from '../store'
 import CoverArt from './CoverArt'
 import AddToPlaylist from './AddToPlaylist'
@@ -14,13 +15,6 @@ interface PlayerState {
 
 // TypeScript doesn't have f64, alias to number
 type f64 = number
-
-function formatTime(s: number): string {
-  if (!isFinite(s) || s < 0) return '0:00'
-  const m = Math.floor(s / 60)
-  const sec = Math.floor(s % 60)
-  return `${m}:${sec.toString().padStart(2, '0')}`
-}
 
 export default function Player() {
   const {
@@ -334,7 +328,7 @@ export default function Player() {
         {/* Seek bar */}
         <div className="flex items-center gap-2 w-full max-w-md">
           <span className="text-[10px] text-zinc-600 w-8 text-right tabular-nums">
-            {formatTime(position)}
+            {formatDuration(position)}
           </span>
           <div className="relative flex-1 h-1">
             <div className="absolute inset-0 rounded-full bg-white/10" />
@@ -353,7 +347,7 @@ export default function Player() {
             />
           </div>
           <span className="text-[10px] text-zinc-600 w-8 tabular-nums">
-            {formatTime(duration)}
+            {formatDuration(duration)}
           </span>
         </div>
       </div>

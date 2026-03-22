@@ -6,13 +6,11 @@ import {
 } from 'lucide-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useLibraryStore } from '../store'
-import { Track } from '../types'
+import { Track, RawTrack, rawToTrack } from '../types'
 import AddToPlaylist from '../components/AddToPlaylist'
 import LazyCover from '../components/LazyCover'
-import { useTheme } from '../hooks/useTheme'
-import { useThemeLabels } from '../hooks/useThemeLabels'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import { useTheme, useThemeLabels } from '../hooks/useTheme'
+import { formatDuration } from '../utils'
 
 type Tab = 'songs' | 'albums' | 'artists'
 type SortKey = 'title' | 'artist' | 'album' | 'duration'
@@ -31,35 +29,7 @@ interface Artist {
   tracks: Track[]
 }
 
-// ── Raw track parsing (same as App.tsx) ───────────────────────────────────────
-
-interface RawTrack {
-  path: string; format: string; title?: string; artist?: string; album?: string
-  album_artist?: string; genre?: string; year?: number; track_number?: number
-  disc_number?: number; duration?: number; cover_art?: string
-  sample_rate?: number; bitrate?: number; file_size?: number; file_modified?: number
-}
-
-function rawToTrack(r: RawTrack): Track {
-  return {
-    path: r.path, format: r.format as Track['format'],
-    title: r.title ?? '', artist: r.artist ?? '', album: r.album ?? '',
-    albumArtist: r.album_artist ?? '', genre: r.genre ?? '', year: r.year ?? 0,
-    trackNumber: r.track_number ?? 0, discNumber: r.disc_number ?? 0,
-    duration: r.duration ?? 0, coverArt: r.cover_art,
-    sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
-    fileModified: r.file_modified,
-  }
-}
-
-function formatDuration(s: number): string {
-  if (!s) return ''
-  const m = Math.floor(s / 60)
-  const sec = Math.floor(s % 60)
-  return `${m}:${sec.toString().padStart(2, '0')}`
-}
-
-// ── Song row ──────────────────────────────────────────────────────────────────
+// Song row
 
 function SongRow({
   track, isActive, isPlaying, onPlay,
@@ -121,7 +91,7 @@ function SongRow({
   )
 }
 
-// ── Album card (grid) ─────────────────────────────────────────────────────────
+// Album card (grid)
 
 function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   return (
@@ -155,7 +125,7 @@ function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   )
 }
 
-// ── Artist row ────────────────────────────────────────────────────────────────
+// Artist row
 
 function ArtistRow({ artist, onClick }: { artist: Artist; onClick: () => void }) {
   return (
@@ -183,7 +153,7 @@ function ArtistRow({ artist, onClick }: { artist: Artist; onClick: () => void })
   )
 }
 
-// ── Album detail header ────────────────────────────────────────────────────────
+// Album detail header
 
 function AlbumHeader({ album, onBack, onPlay, onShuffle }: {
   album: Album; onBack: () => void
@@ -234,7 +204,7 @@ function AlbumHeader({ album, onBack, onPlay, onShuffle }: {
   )
 }
 
-// ── Artist detail header ───────────────────────────────────────────────────────
+// Artist detail header
 
 function ArtistHeader({ artist, onBack, onPlay, onShuffle }: {
   artist: Artist; onBack: () => void
@@ -282,7 +252,7 @@ function ArtistHeader({ artist, onBack, onPlay, onShuffle }: {
   )
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// Empty state
 
 function Empty({ message }: { message: string }) {
   return (
@@ -293,7 +263,7 @@ function Empty({ message }: { message: string }) {
   )
 }
 
-// ── Virtualized song list ──────────────────────────────────────────────────────
+// Virtualized song list
 
 const SONG_ROW_HEIGHT = 60
 
@@ -343,7 +313,7 @@ function VirtualSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Blame! Netsphere scanner ────────────────────────────────────────────────────
+// Blame theme: hex number helpers
 
 function toHex(n: number): string {
   return n.toString(16).toUpperCase().padStart(4, '0')
@@ -487,7 +457,7 @@ function BlameNetscanner({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Goth grimoire — dark tome of souls ─────────────────────────────────────────
+// Obsidian theme: song list
 
 // Roman numeral converter (I–XII then fallback to arabic)
 function toRoman(n: number): string {
@@ -635,7 +605,7 @@ function GrimoireSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Rambo tactical mission briefing ────────────────────────────────────────────
+// Military theme: song list
 
 function TacticalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   tracks: Track[]
@@ -764,7 +734,7 @@ function TacticalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Sakura song list (kawaii numbered 2-col grid) ─────────────────────────────
+// Anime theme: song list
 
 function SakuraSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   tracks: Track[]
@@ -817,7 +787,7 @@ function SakuraSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Vaporwave song list (retro cassette-side style) ────────────────────────────
+// Vaporwave theme: song list
 
 const CASSETTE_SIDES = ['A', 'B', 'C', 'D', 'E', 'F']
 function getCasseteLabel(i: number) {
@@ -903,7 +873,7 @@ function VaporwaveSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Terminal song list (cyberpunk) ─────────────────────────────────────────────
+// Cyberpunk theme: song list
 
 function TerminalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   tracks: Track[]
@@ -984,7 +954,7 @@ function TerminalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Minimal song list (minimal theme) ─────────────────────────────────────────
+// Minimal theme: song list
 
 function MinimalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   tracks: Track[]
@@ -1051,7 +1021,7 @@ function MinimalSongList({ tracks, playerTrack, isPlaying, onPlay }: {
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// Main page component
 
 export default function PlayerPage({ defaultTab = 'songs', standalone = false }: { defaultTab?: Tab; standalone?: boolean }) {
   const {

@@ -922,3 +922,46 @@ body {
 .np-play-btn:active {
   transform: scale(0.95);
 }
+
+/* ── Performance mode ────────────────────────────────────────────── */
+[data-perf] *,
+[data-perf] *::before,
+[data-perf] *::after {
+  animation-duration: 0ms !important;
+  transition-duration: 0ms !important;
+}
+
+[data-perf] .blur-3xl,
+[data-perf] .blur-xl,
+[data-perf] .blur-lg,
+[data-perf] .blur-md,
+[data-perf] .blur-sm,
+[data-perf] .blur {
+  filter: none !important;
+}
+
+[data-perf] .backdrop-blur-xl,
+[data-perf] .backdrop-blur-lg,
+[data-perf] .backdrop-blur-md,
+[data-perf] .backdrop-blur-sm,
+[data-perf] .backdrop-blur {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Kill song-row hover transforms */
+[data-perf] .song-row:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Simplify glass cards */
+[data-perf] .glass-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Kill the ambient cover art blurs in NowPlaying */
+[data-perf] .now-playing-overlay img[aria-hidden] {
+  display: none !important;
+}

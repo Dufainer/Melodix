@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Play, Pause, Shuffle, ChevronLeft, Music2, ListPlus, Check } from 'lucide-react'
 import { useLibraryStore } from '../store'
+import { formatDuration } from '../utils'
 import { Track } from '../types'
 import LazyCover from '../components/LazyCover'
 import AddToPlaylist from '../components/AddToPlaylist'
-import { useThemeLabels } from '../hooks/useThemeLabels'
+import { useThemeLabels } from '../hooks/useTheme'
 
-// ── Genre color palette ────────────────────────────────────────────────────────
+// Genre color palette
 
 const GRADIENTS: [string, string][] = [
   ['from-violet-700', 'to-purple-950'],
@@ -29,14 +30,8 @@ function genreGradient(name: string): [string, string] {
   return GRADIENTS[hash % GRADIENTS.length]
 }
 
-function formatDuration(s: number): string {
-  if (!s) return ''
-  const m = Math.floor(s / 60)
-  const sec = Math.floor(s % 60)
-  return `${m}:${sec.toString().padStart(2, '0')}`
-}
 
-// ── Song row ──────────────────────────────────────────────────────────────────
+// Song row
 
 function SongRow({ track, isActive, isPlaying, onPlay }: {
   track: Track; isActive: boolean; isPlaying: boolean; onPlay: () => void
@@ -90,7 +85,7 @@ function SongRow({ track, isActive, isPlaying, onPlay }: {
   )
 }
 
-// ── Genre card ─────────────────────────────────────────────────────────────────
+// Genre card
 
 interface Genre {
   name: string
@@ -146,7 +141,7 @@ function GenreCard({ genre, onClick }: { genre: Genre; onClick: () => void }) {
   )
 }
 
-// ── Genre detail ──────────────────────────────────────────────────────────────
+// Genre detail
 
 function GenreDetail({ genre, onBack }: { genre: Genre; onBack: () => void }) {
   const { playerTrack, isPlaying, playTrack } = useLibraryStore()
@@ -231,7 +226,7 @@ function GenreDetail({ genre, onBack }: { genre: Genre; onBack: () => void }) {
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// Main page component
 
 export default function GenrePage() {
   const tracks = useLibraryStore(s => s.tracks)

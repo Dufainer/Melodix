@@ -2,13 +2,9 @@ import { Heart, ListPlus, Check } from 'lucide-react'
 import { useLibraryStore } from '../store'
 import CoverArt from '../components/CoverArt'
 import { Track } from '../types'
-import { useThemeLabels } from '../hooks/useThemeLabels'
+import { useThemeLabels } from '../hooks/useTheme'
+import { formatDuration } from '../utils'
 
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
 
 function LikedRow({ track, onPlay, onUnlike }: { track: Track; onPlay: () => void; onUnlike: () => void }) {
   const addToQueue = useLibraryStore(s => s.addToQueue)

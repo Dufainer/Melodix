@@ -4,31 +4,8 @@ import { Info, X, RefreshCw, Moon, Plus, RotateCcw, ChevronDown, ChevronUp } fro
 import { open } from '@tauri-apps/plugin-dialog'
 import { useLibraryStore } from '../store'
 import { buildPreviewPath } from '../services/fileOps'
-import { Track } from '../types'
+import { RawTrack, rawToTrack } from '../types'
 import { THEMES, THEME_CONFIGS, COLOR_VARS, VAR_LABELS } from '../themes'
-
-interface RawTrack {
-  path: string; format: string; title?: string; artist?: string; album?: string
-  album_artist?: string; genre?: string; year?: number; track_number?: number
-  disc_number?: number; duration?: number; cover_art?: string; bit_depth?: number
-  sample_rate?: number; bitrate?: number; file_size?: number
-  replay_gain_track?: number; replay_gain_album?: number
-  lyrics?: string; comment?: string; composer?: string; file_modified?: number
-}
-
-function rawToTrack(r: RawTrack): Track {
-  return {
-    path: r.path, format: r.format as Track['format'],
-    title: r.title ?? '', artist: r.artist ?? '', album: r.album ?? '',
-    albumArtist: r.album_artist ?? '', genre: r.genre ?? '', year: r.year ?? 0,
-    trackNumber: r.track_number ?? 0, discNumber: r.disc_number ?? 0,
-    duration: r.duration ?? 0, coverArt: r.cover_art,
-    sampleRate: r.sample_rate ?? 0, bitrate: r.bitrate ?? 0, fileSize: r.file_size ?? 0,
-    replayGainTrack: r.replay_gain_track, replayGainAlbum: r.replay_gain_album,
-    lyrics: r.lyrics, comment: r.comment, composer: r.composer,
-    fileModified: r.file_modified,
-  }
-}
 
 const VARS = ['{title}', '{artist}', '{album}', '{track}', '{disc}', '{year}', '{genre}']
 
@@ -87,6 +64,7 @@ export default function Settings() {
     replayGainMode, setReplayGainMode,
     theme, setTheme,
     themeOverrides, setThemeOverride, resetThemeOverrides,
+    performanceMode, setPerformanceMode,
   } = useLibraryStore()
 
   const [studioOpen, setStudioOpen] = useState(false)
@@ -187,6 +165,22 @@ export default function Settings() {
         </div>
       </section>
 
+      {/* Performance mode */}
+      <section className="mb-6">
+        <div className="glass-card flex items-center justify-between">
+          <div>
+            <p className="text-sm text-zinc-200 font-medium">Performance mode</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Disables animations, blur and heavy effects for lower-end hardware</p>
+          </div>
+          <button
+            onClick={() => setPerformanceMode(!performanceMode)}
+            className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${performanceMode ? 'bg-accent' : 'bg-white/10'}`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${performanceMode ? 'left-[22px]' : 'left-0.5'}`} />
+          </button>
+        </div>
+      </section>
+
       {/* Theme Studio */}
       <section className="mb-6">
         <button
@@ -280,7 +274,7 @@ export default function Settings() {
                   <div className="px-3 py-2 rounded" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)' }}>
                     <p className="text-xs text-zinc-500 mb-0.5 font-mono">{THEMES.find(t => t.id === theme)?.font}</p>
                     <p className="text-sm" style={{ fontFamily: 'var(--font-body)' }}>
-                      Escuchando: música a través del tiempo
+                      Listening: Music Through the Ages
                     </p>
                   </div>
                 </div>
@@ -288,6 +282,7 @@ export default function Settings() {
           </div>
         )}
       </section>
+
 
       {/* Music Library — full width */}
       <section className="mb-6">

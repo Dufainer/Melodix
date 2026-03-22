@@ -11,7 +11,7 @@ import { autoFetchMetadata } from '../services/autoFetch'
 import { applyPattern, applyFolderPattern } from '../services/fileOps'
 import ConflictModal, { RenameConflict } from './ConflictModal'
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// Types
 
 type Tab = 'metadata' | 'files'
 
@@ -52,7 +52,7 @@ interface FileOpResult {
   error: string | null
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// Helpers
 
 function stepIcon(status: FetchStep['status']) {
   if (status === 'pending')  return <Clock       className="w-3 h-3 text-zinc-600 shrink-0" />
@@ -79,7 +79,7 @@ function applyFields(fetched: FetchResult, fields: Set<BulkField>): Partial<Trac
 
 type OpPhase = 'idle' | 'running' | 'done'
 
-// ── Shared sub-component ───────────────────────────────────────────────────────
+// Shared sub-component
 
 function ResultList({ results }: { results: FileOpResult[] }) {
   const ok   = results.filter((r) => !r.error).length
@@ -106,7 +106,7 @@ function ResultList({ results }: { results: FileOpResult[] }) {
   )
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// Component
 
 export default function BulkEditor() {
   const {

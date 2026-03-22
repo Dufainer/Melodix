@@ -1,6 +1,7 @@
 import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import CoverArt from './CoverArt'
+import { formatDuration } from '../utils'
 import { Clock, Music } from 'lucide-react'
 
 const FORMAT_COLORS: Record<string, string> = {
@@ -13,11 +14,6 @@ const FORMAT_COLORS: Record<string, string> = {
   aiff: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
 }
 
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
 
 function FormatBadge({ format }: { format: string }) {
   const cls = FORMAT_COLORS[format.toLowerCase()] ?? 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30'

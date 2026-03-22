@@ -1,4 +1,4 @@
-// ── Theme vocabulary system ────────────────────────────────────────────────────
+// Theme vocabulary system
 // Every theme gets its own language for all UI text.
 // Default English is the base; other themes override what they want.
 
@@ -77,7 +77,7 @@ export interface ThemeLabels {
   noSongsFound: string
 }
 
-// ── Default (standard English) ────────────────────────────────────────────────
+// Default (standard English)
 const DEFAULT: ThemeLabels = {
   navHome:              'Home',
   navSongs:             'Songs',
@@ -144,7 +144,7 @@ const DEFAULT: ThemeLabels = {
   noSongsFound: 'No songs found',
 }
 
-// ── Theme overrides ────────────────────────────────────────────────────────────
+// Theme overrides
 
 const GOTH: ThemeLabels = {
   ...DEFAULT,
@@ -863,7 +863,7 @@ const EMBER: ThemeLabels = {
   noSongsFound: 'No embers found',
 }
 
-// ── Registry ──────────────────────────────────────────────────────────────────
+// Registry
 export const THEME_LABELS: Record<string, ThemeLabels> = {
   default:   DEFAULT,
   goth:      GOTH,

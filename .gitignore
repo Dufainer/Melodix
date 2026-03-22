@@ -33,9 +33,9 @@ dist-ssr/
 
 # Tauri build artifacts
 src-tauri/target/
-src-tauri/gen/schemas/
+src-tauri/gen/
 
-# Package manager locks (keep one, ignore the rest)
+# Package manager locks (keep npm, ignore the rest)
 yarn.lock
 pnpm-lock.yaml
 
@@ -46,5 +46,8 @@ Thumbs.db
 .cache/
 *.tsbuildinfo
 
-# Tauri WIP
+# Tauri Windows installer tools (generated on build)
 src-tauri/WixTools/
+
+# Rust incremental build cache
+src-tauri/flycheck*

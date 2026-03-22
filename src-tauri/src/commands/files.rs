@@ -33,6 +33,15 @@ fn sanitize(s: &str) -> String {
         .collect()
 }
 
+/// Verify that `child` is strictly inside `parent` (resolves `..` traversal).
+/// Uses lexical component comparison — no filesystem calls, zero cost.
+fn is_within(parent: &std::path::Path, child: &std::path::Path) -> bool {
+    child.components()
+        .zip(parent.components())
+        .all(|(c, p)| c == p)
+        && child.components().count() >= parent.components().count()
+}
+
 /// Capitalize only the very first character, leave the rest untouched.
 /// "cults" → "Cults", "TV Girl" → "TV Girl", "the XX" → "The XX"
 fn capitalize_first(s: &str) -> String {
@@ -103,7 +112,7 @@ fn apply_folder_pattern(pattern: &str, info: &TrackInfo) -> String {
         .replace("{genre}",  &sanitize(&info.genre))
 }
 
-// ── Rename file in place ───────────────────────────────────────────────────────
+// Rename file in place
 
 #[derive(Debug, Serialize)]
 pub struct RenameResult {
@@ -129,6 +138,10 @@ pub fn rename_track(path: String, new_name: String) -> Result<RenameResult, Stri
         return Err("Name cannot be empty".to_string());
     }
     let new_path = dir.join(format!("{}.{}", name, ext));
+    // Ensure the rename stays inside the original directory
+    if !is_within(dir, &new_path) {
+        return Err("Rename target outside original directory".to_string());
+    }
     let new_path_str = new_path.to_string_lossy().to_string();
 
     if new_path == p {
@@ -154,17 +167,23 @@ pub fn rename_track(path: String, new_name: String) -> Result<RenameResult, Stri
 /// action: "overwrite" → replace existing with original | "skip" → do nothing
 #[tauri::command]
 pub fn resolve_rename_conflict(original_path: String, target_path: String, action: String) -> Result<String, String> {
+    let orig_dir = Path::new(&original_path).parent().unwrap_or(Path::new("."));
+    let tgt      = Path::new(&target_path);
+    // Both files must live in the same directory
+    if tgt.parent().unwrap_or(Path::new(".")) != orig_dir {
+        return Err("Conflict target outside original directory".to_string());
+    }
     match action.as_str() {
         "overwrite" => {
             std::fs::rename(&original_path, &target_path).map_err(|e| e.to_string())?;
             Ok(target_path)
         }
         "skip" => Ok(original_path),
-        _ => Err(format!("Unknown action: {}", action)),
+        _ => Err(format!("Unknown action: {action}")),
     }
 }
 
-// ── Organize into folder structure ─────────────────────────────────────────────
+// Organize into folder structure
 // rename_files = false → keep original filename, only move to new folder
 // rename_files = true  → also apply file_pattern to rename the file
 
@@ -180,6 +199,10 @@ pub fn organize_tracks(
     if !base.exists() {
         return Err(format!("Destination folder does not exist: {}", base_dir));
     }
+    // Resolve to an absolute canonical path so is_within() works correctly
+    let base = base.canonicalize()
+        .map_err(|e| format!("Cannot resolve destination: {e}"))?;
+
     let mut results = Vec::new();
 
     for track in &tracks {
@@ -188,9 +211,21 @@ pub fn organize_tracks(
 
         let target_dir = folder_pattern
             .split('/')
+            // Reject any segment that is `.` or `..` to prevent traversal
+            .filter(|part| !matches!(part.trim(), "." | ".."))
             .map(|part| apply_folder_pattern(part, track))
             .filter(|s| !s.trim().is_empty())
             .fold(base.to_path_buf(), |acc, part| acc.join(part.trim()));
+
+        // Guard: target_dir must stay inside base
+        if !is_within(&base, &target_dir) {
+            results.push(OrganizeResult {
+                original_path: track.path.clone(),
+                new_path: None,
+                error: Some("Target path escapes base directory".to_string()),
+            });
+            continue;
+        }
 
         let file_stem = if rename_files {
             apply_pattern(&file_pattern, track)
@@ -248,7 +283,7 @@ pub fn organize_tracks(
     Ok(results)
 }
 
-// ── Clean up empty directories ─────────────────────────────────────────────────
+// Clean up empty directories
 
 fn remove_if_empty(path: &Path) -> bool {
     if !path.is_dir() { return false; }

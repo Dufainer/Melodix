@@ -29,7 +29,7 @@ pub fn scan_folder(path: String, skip_cover: Option<bool>) -> Result<Vec<Scanned
     let mut tracks: Vec<ScannedTrack> = Vec::new();
 
     for entry in WalkDir::new(root)
-        .follow_links(true)
+        .follow_links(false)
         .into_iter()
         .filter_map(|e| e.ok())
     {

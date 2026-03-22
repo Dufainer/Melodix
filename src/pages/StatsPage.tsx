@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLibraryStore, PlayEvent } from '../store'
 import LazyCover from '../components/LazyCover'
-import { useThemeLabels } from '../hooks/useThemeLabels'
+import { useThemeLabels } from '../hooks/useTheme'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
 type TopTab = 'song' | 'album' | 'artist'

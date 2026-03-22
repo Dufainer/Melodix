@@ -2,53 +2,7 @@ import { FolderOpen, RefreshCw, Search } from 'lucide-react'
 import { open } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
 import { useLibraryStore } from '../store'
-import { Track } from '../types'
-
-interface RawTrack {
-  path: string
-  format: string
-  title?: string
-  artist?: string
-  album?: string
-  album_artist?: string
-  genre?: string
-  year?: number
-  track_number?: number
-  disc_number?: number
-  duration?: number
-  cover_art?: string
-  bit_depth?: number
-  sample_rate?: number
-  bitrate?: number
-  file_size?: number
-  lyrics?: string
-  comment?: string
-  composer?: string
-}
-
-function rawToTrack(r: RawTrack): Track {
-  return {
-    path: r.path,
-    format: r.format as Track['format'],
-    title: r.title ?? '',
-    artist: r.artist ?? '',
-    album: r.album ?? '',
-    albumArtist: r.album_artist ?? '',
-    genre: r.genre ?? '',
-    year: r.year ?? 0,
-    trackNumber: r.track_number ?? 0,
-    discNumber: r.disc_number ?? 0,
-    duration: r.duration ?? 0,
-    coverArt: r.cover_art,
-    bitDepth: r.bit_depth,
-    sampleRate: r.sample_rate ?? 0,
-    bitrate: r.bitrate ?? 0,
-    fileSize: r.file_size ?? 0,
-    lyrics: r.lyrics,
-    comment: r.comment,
-    composer: r.composer,
-  }
-}
+import { RawTrack, rawToTrack } from '../types'
 
 export default function Toolbar() {
   const { isScanning, searchQuery, setEditorTracks, setScanning, setSearchQuery } = useLibraryStore()

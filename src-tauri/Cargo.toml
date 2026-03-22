@@ -20,6 +20,7 @@ tauri-plugin-fs = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 metaflac = "0.2"
+id3 = { version = "1", features = ["default"] }
 base64 = "0.22"
 walkdir = "2"
 thiserror = "2"

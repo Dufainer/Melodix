@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import { formatDuration } from '../utils'
 import {
   X, Play, Pause, SkipBack, SkipForward,
   Shuffle, Repeat, Repeat1, Heart, Music2, Volume2, VolumeX, Mic2, ListPlus, Check,
@@ -9,13 +10,6 @@ import AddToPlaylist from './AddToPlaylist'
 import { useTheme } from '../hooks/useTheme'
 
 type Tab = 'controls' | 'lyrics'
-
-function formatTime(s: number): string {
-  if (!isFinite(s) || s < 0) return '0:00'
-  const m = Math.floor(s / 60)
-  const sec = Math.floor(s % 60)
-  return `${m}:${sec.toString().padStart(2, '0')}`
-}
 
 export default function NowPlaying() {
   const {
@@ -112,6 +106,7 @@ export default function NowPlaying() {
         <X className="w-5 h-5" />
       </button>
 
+
       {/* Two-column layout */}
       <div className="relative flex w-full h-full items-center px-16 gap-16">
 
@@ -207,8 +202,8 @@ export default function NowPlaying() {
                   />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-xs text-zinc-600 tabular-nums">{formatTime(position)}</span>
-                  <span className="text-xs text-zinc-600 tabular-nums">{formatTime(duration)}</span>
+                  <span className="text-xs text-zinc-600 tabular-nums">{formatDuration(position)}</span>
+                  <span className="text-xs text-zinc-600 tabular-nums">{formatDuration(duration)}</span>
                 </div>
               </div>
 

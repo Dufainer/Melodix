@@ -5,7 +5,7 @@ import { useLibraryStore } from '../store'
 import { Track } from '../types'
 import DailyMixModal from '../components/DailyMixModal'
 import LazyCover from '../components/LazyCover'
-import { useThemeLabels } from '../hooks/useThemeLabels'
+import { useThemeLabels } from '../hooks/useTheme'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
