@@ -924,44 +924,71 @@ body {
 }
 
 /* ── Performance mode ────────────────────────────────────────────── */
+
+/* Kill ALL transitions and animations */
 [data-perf] *,
 [data-perf] *::before,
 [data-perf] *::after {
+  animation: none !important;
   animation-duration: 0ms !important;
+  transition: none !important;
   transition-duration: 0ms !important;
 }
 
-[data-perf] .blur-3xl,
-[data-perf] .blur-xl,
-[data-perf] .blur-lg,
-[data-perf] .blur-md,
-[data-perf] .blur-sm,
-[data-perf] .blur {
+/* Kill all blur filters */
+[data-perf] * {
   filter: none !important;
-}
-
-[data-perf] .backdrop-blur-xl,
-[data-perf] .backdrop-blur-lg,
-[data-perf] .backdrop-blur-md,
-[data-perf] .backdrop-blur-sm,
-[data-perf] .backdrop-blur {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* Kill all box-shadows */
+[data-perf] * {
+  box-shadow: none !important;
+}
+
+/* Kill all gradients (bg-gradient-*) */
+[data-perf] [class*="bg-gradient"] {
+  background-image: none !important;
+}
+
+/* Kill pseudo-element gradients used as overlays */
+[data-perf] *::before,
+[data-perf] *::after {
+  background-image: none !important;
+  opacity: 0 !important;
 }
 
 /* Kill song-row hover transforms */
 [data-perf] .song-row:hover {
   transform: none !important;
-  box-shadow: none !important;
 }
 
-/* Simplify glass cards */
+/* Simplify glass cards — flat bg only */
 [data-perf] .glass-card {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  background: rgba(255,255,255,0.04) !important;
 }
 
-/* Kill the ambient cover art blurs in NowPlaying */
+/* Kill NowPlaying ambient blurred cover art */
 [data-perf] .now-playing-overlay img[aria-hidden] {
   display: none !important;
+}
+
+/* Kill album grid card gradient overlays */
+[data-perf] .album-grid-card > div[class*="bg-gradient"] {
+  display: none !important;
+}
+
+/* Kill spinning/pulsing icons */
+[data-perf] .animate-spin,
+[data-perf] .animate-pulse,
+[data-perf] .animate-bounce {
+  animation: none !important;
+}
+
+/* Flatten the player bar — no blur, no gradient */
+[data-perf] .player-bar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--color-surface, #18181b) !important;
 }

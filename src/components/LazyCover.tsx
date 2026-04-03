@@ -11,13 +11,15 @@ interface Props {
 }
 
 export default function LazyCover({ path, coverArt, className = 'w-full h-full', iconSize = 32 }: Props) {
+  const performanceMode = useLibraryStore(s => s.performanceMode)
   const [src, setSrc] = useState<string | undefined>(coverArt)
   const [visible, setVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const updateTrack = useLibraryStore(s => s.updateTrack)
 
-  // Observe visibility
+  // In performance mode: skip cover loading entirely
   useEffect(() => {
+    if (performanceMode) return
     if (src) return
     const el = ref.current
     if (!el) return
@@ -27,11 +29,10 @@ export default function LazyCover({ path, coverArt, className = 'w-full h-full',
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [path, src])
+  }, [path, src, performanceMode])
 
-  // Fetch cover when visible
   useEffect(() => {
-    if (!visible || src) return
+    if (performanceMode || !visible || src) return
     fetchCover(path)
       .then(art => {
         if (art) {
@@ -40,7 +41,17 @@ export default function LazyCover({ path, coverArt, className = 'w-full h-full',
         }
       })
       .catch(() => {})
-  }, [visible, path])
+  }, [visible, path, performanceMode])
+
+  const placeholder = (
+    <div className="w-full h-full flex items-center justify-center bg-zinc-800">
+      <Music2 style={{ width: iconSize, height: iconSize }} className="text-zinc-600" />
+    </div>
+  )
+
+  if (performanceMode) {
+    return <div ref={ref} className={`${className} overflow-hidden`}>{placeholder}</div>
+  }
 
   return (
     <div ref={ref} className={`${className} overflow-hidden`}>
@@ -50,11 +61,7 @@ export default function LazyCover({ path, coverArt, className = 'w-full h-full',
           alt=""
           className="w-full h-full object-cover animate-fade-in"
         />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-700/40 to-zinc-900">
-          <Music2 style={{ width: iconSize, height: iconSize }} className="text-zinc-600" />
-        </div>
-      )}
+      ) : placeholder}
     </div>
   )
 }

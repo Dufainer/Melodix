@@ -31,11 +31,9 @@ function AppContent() {
     if (theme === 'default') el.removeAttribute('data-theme')
     else el.setAttribute('data-theme', theme)
 
-    // Apply all CSS variable values from JS config (allows runtime editing)
     const base = THEME_CONFIGS[theme] ?? THEME_CONFIGS['default']
     Object.entries(base).forEach(([k, v]) => el.style.setProperty(k, v))
 
-    // Apply user overrides on top
     const overrides = themeOverrides[theme] ?? {}
     Object.entries(overrides).forEach(([k, v]) => el.style.setProperty(k, v))
   }, [theme, themeOverrides])

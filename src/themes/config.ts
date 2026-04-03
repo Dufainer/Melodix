@@ -3,6 +3,7 @@
 // These JS configs control all CSS custom properties (colors, radii, fonts, shadows)
 
 export interface ThemeVars {
+  [key: string]: string
   '--color-bg': string
   '--color-surface': string
   '--color-card': string
@@ -306,7 +307,7 @@ export const THEME_CONFIGS: Record<string, ThemeVars> = {
 }
 
 // Human-readable labels for the palette editor
-export const VAR_LABELS: Partial<Record<keyof ThemeVars, string>> = {
+export const VAR_LABELS: Record<string, string> = {
   '--color-bg':      'Background',
   '--color-surface': 'Surface',
   '--color-accent':  'Accent',
@@ -315,7 +316,7 @@ export const VAR_LABELS: Partial<Record<keyof ThemeVars, string>> = {
 }
 
 // Vars that are color hex values (can be edited with color picker)
-export const COLOR_VARS: Array<keyof ThemeVars> = [
+export const COLOR_VARS: string[] = [
   '--color-bg',
   '--color-surface',
   '--color-accent',

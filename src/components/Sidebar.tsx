@@ -199,7 +199,7 @@ export default function Sidebar() {
             {label}
           </NavLink>
         ))}
-        <p className="text-xs text-zinc-700 px-3 pt-2">Melodix v0.2.0</p>
+        <p className="text-xs text-zinc-700 px-3 pt-2">Melodix v0.3.0-beta.3</p>
       </nav>
     </aside>
   )

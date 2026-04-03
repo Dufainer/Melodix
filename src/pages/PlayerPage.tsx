@@ -39,6 +39,7 @@ function SongRow({
 }) {
   const addToQueue = useLibraryStore(s => s.addToQueue)
   const inQueue = useLibraryStore(s => s.playerQueue.some(t => t.path === track.path))
+
   return (
     <div
       onClick={onPlay}
@@ -46,20 +47,11 @@ function SongRow({
         isActive ? 'active bg-accent/15' : 'hover:bg-white/5'
       }`}
     >
-      {/* Cover / index */}
+      {/* Cover */}
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 relative bg-white/5 flex items-center justify-center">
-        <LazyCover
-          path={track.path}
-          coverArt={track.coverArt}
-          className="absolute inset-0 w-full h-full object-cover"
-          iconSize={16}
-        />
-        {/* Play overlay on hover or active */}
-        <div className={`absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity
-          ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-          {isActive && isPlaying
-            ? <Pause className="w-4 h-4 text-white" />
-            : <Play className="w-4 h-4 text-white ml-0.5" />}
+        <LazyCover path={track.path} coverArt={track.coverArt} className="absolute inset-0 w-full h-full object-cover" iconSize={16} />
+        <div className={`absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+          {isActive && isPlaying ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
         </div>
       </div>
 
@@ -71,12 +63,8 @@ function SongRow({
         <p className="text-xs text-zinc-500 truncate">{track.artist || 'Unknown Artist'}</p>
       </div>
 
-      {/* Duration */}
-      {track.duration > 0 && (
-        <span className="text-xs text-zinc-600 tabular-nums shrink-0 mr-1">
-          {formatDuration(track.duration)}
-        </span>
-      )}
+      {track.format && <span className="format-badge shrink-0 text-[10px]">{track.format.toUpperCase()}</span>}
+      {track.duration > 0 && <span className="text-xs text-zinc-600 tabular-nums shrink-0 mr-1">{formatDuration(track.duration)}</span>}
 
       <button
         onClick={(e) => { e.stopPropagation(); addToQueue(track) }}
